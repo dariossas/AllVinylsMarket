@@ -40,7 +40,7 @@ $recentListings = getRecentListings($conn);
                 <a href="logout.php" class="login-button">ESCI</a>
          
                 <a href="login.php" class="login-button">ACCEDI/ISCRIVITI</a>
-            <?php endif; ?>
+           
         </div>
     </header>
     
