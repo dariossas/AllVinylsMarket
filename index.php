@@ -25,7 +25,7 @@ $recentListings = getRecentListings($conn);
     <header>
         <div class="logo">
             <a href="index.php"><img src="LOGO.png" alt="AllVinylsMarket Logo" /></a>
-            <h3 style="color:red; font-family:brush script mt; font-size:160%;">AllVinylsMarket</h3>
+            <h3 style="color:blue; font-family:brush script mt; font-size:160%;">AllVinylsMarket</h3>
         </div>
         <div class="search-bar">
             <form action="search.php" method="GET">
