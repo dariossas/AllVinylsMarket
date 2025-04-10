@@ -33,12 +33,12 @@ $recentListings = getRecentListings($conn);
             </form>
         </div>
         <div class="icons">
-            <?php if ($isLoggedIn): ?>
+           
                 <a href="messaggi.php" class="icon">📧</a>
                 <a href="preferiti.php" class="icon">❤️</a>
                 <a href="profilo.php" class="icon">👤</a>
                 <a href="logout.php" class="login-button">ESCI</a>
-            <?php else: ?>
+         
                 <a href="login.php" class="login-button">ACCEDI/ISCRIVITI</a>
             <?php endif; ?>
         </div>
