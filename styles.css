@@ -1,0 +1,382 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background-color: #f5f5f5;
+}
+
+header {
+    background-color: white;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo img {
+    height: 50px;
+}
+
+.search-bar input {
+    width: 100%;
+    padding: 5px 10px;
+    border-radius: 15px;
+    border: 1px solid #ccc;
+}
+
+.icons {
+    display: flex;
+    gap: 10px;
+}
+
+.login-button {
+    background-color: #bb1e10;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    text-decoration: none;
+}
+
+.hero {
+    position: relative;
+    height: 400px;
+    overflow: hidden;
+    background-color: #f0f0f0;
+}
+
+.hero img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.hero-content {
+    position: absolute;
+    top: 50px;
+    left: 20px;
+    max-width: 250px;
+}
+
+.hero-text {
+    background-color: rgba(187, 30, 16, 0.9);
+    color: white;
+    padding: 10px;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.hero-button {
+    display: inline-block;
+    background-color: #bb1e10;
+    color: white;
+    padding: 5px 15px;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.secondary-hero {
+    background-color: white;
+    margin: 20px 0;
+    padding: 20px;
+    text-align: center;
+}
+
+.novita {
+    background-color: #bb1e10;
+    padding: 10px;
+    color: white;
+    margin-bottom: 10px;
+    text-align: left;
+}
+
+.cassette-box {
+    display: flex;
+    margin: 10px 0;
+}
+
+.cassette-image {
+    flex: 1;
+    text-align: right;
+}
+
+.cassette-image img {
+    width: 80%;
+    max-width: 300px;
+}
+
+.cassette-info {
+    flex: 1;
+    text-align: left;
+    padding: 10px;
+}
+
+.cassette-button {
+    display: inline-block;
+    background-color: #bb1e10;
+    color: white;
+    padding: 5px 15px;
+    text-decoration: none;
+    margin-top: 10px;
+    font-size: 12px;
+}
+
+.lista-preferiti {
+    margin: 20px;
+}
+
+.preferiti-title {
+    margin-bottom: 15px;
+    font-size: 16px;
+}
+
+.vinyl-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+}
+
+.vinyl-item {
+    background-color: white;
+    padding: 10px;
+    text-align: center;
+}
+
+.vinyl-item a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.vinyl-item img {
+    width: 100%;
+    aspect-ratio: 1/1;
+    object-fit: cover;
+}
+
+.vinyl-item h4 {
+    font-size: 12px;
+    margin: 5px 0;
+}
+
+.vinyl-item p {
+    font-size: 11px;
+    color: #666;
+    margin: 2px 0;
+}
+
+.vinyl-item .price {
+    font-weight: bold;
+    color: #bb1e10;
+    margin-top: 5px;
+    font-size: 14px;
+}
+
+.esplora {
+    margin: 30px 20px;
+}
+
+.esplora-title {
+    margin-bottom: 15px;
+    font-size: 16px;
+}
+
+.esplora-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+}
+
+.empty-message {
+    grid-column: span 5;
+    padding: 20px;
+    text-align: center;
+    background-color: white;
+    font-style: italic;
+    color: #666;
+}
+
+/* ===== NUOVI STILI PER LOGIN E REGISTRAZIONE ===== */
+
+/* Stili condivisi per contenitori form */
+.login-container,
+.registration-container {
+    max-width: 600px;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.login-container {
+    max-width: 500px;
+}
+
+.login-container h2,
+.registration-container h2 {
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.login-container p,
+.registration-container p {
+    color: #666;
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+/* Stili per i gruppi di form */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: #bb1e10;
+    outline: none;
+}
+
+/* Layout a due colonne */
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+/* Stili per messaggi */
+.error-message {
+    color: #bb1e10;
+    margin-bottom: 15px;
+    font-size: 14px;
+    padding: 8px;
+    background-color: rgba(187, 30, 16, 0.1);
+    border-radius: 4px;
+}
+
+.success-message {
+    color: #2e7d32;
+    margin-bottom: 15px;
+    font-size: 14px;
+    padding: 8px;
+    background-color: rgba(46, 125, 50, 0.1);
+    border-radius: 4px;
+}
+
+/* Bottone submit */
+.submit-button {
+    background-color: #bb1e10;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    width: 100%;
+    transition: background-color 0.3s;
+}
+
+.submit-button:hover {
+    background-color: #951a0d;
+}
+
+/* Links sotto i form */
+.login-link,
+.register-link {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.login-link a,
+.register-link a {
+    color: #bb1e10;
+    text-decoration: none;
+}
+
+.login-link a:hover,
+.register-link a:hover {
+    text-decoration: underline;
+}
+
+/* Stile per checkbox */
+input[type="checkbox"] + label {
+    font-weight: normal;
+}
+
+/* Stile per upload file */
+input[type="file"] {
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 100%;
+}
+
+/* Stile per readonly input */
+input[readonly] {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .vinyl-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .esplora-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .vinyl-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .esplora-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .login-container,
+    .registration-container {
+        padding: 15px;
+        margin: 15px;
+        width: auto;
+    }
+}
