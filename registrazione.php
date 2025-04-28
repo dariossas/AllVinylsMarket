@@ -368,7 +368,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     
                     <div class="form-group">
                         <input type="checkbox" id="termini" name="termini" required>
-                        <label for="termini" style="display: inline;">Accetto i <a href="termini.php" target="_blank">Termini e Condizioni</a>*</label>
+                        <label for="termini" style="display: inline;">Accetto i <a href="termini.html" target="_blank">Termini e Condizioni</a>*</label>
                     </div>
                     
                     <button type="submit" class="registration-button">Registrati</button>
