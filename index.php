@@ -64,11 +64,9 @@ $recentListings = getRecentListings($conn);
     </div>
     
     <div class="cassette-box">
-        <div class="cassette-info">
-            <a href="catalogo.php?categoria=cassette" class="cassette-button">VENDI SUBITO</a>
-        </div>
+        
         <div class="cassette-image">
-            <img src="images/cassette.jpg" alt="Vintage cassette tapes" />
+            <img src="cassette.png" alt="Vintage cassette tapes" />
         </div>
     </div>
     
@@ -115,9 +113,7 @@ $recentListings = getRecentListings($conn);
                     </div>
                 <?php endforeach; ?>
             <?php else: ?>
-                <div class="empty-message">
-                    Non ci sono ancora annunci disponibili.
-                </div>
+               
             <?php endif; ?>
         </div>
     </div>
