@@ -25,7 +25,7 @@ $recentListings = getRecentListings($conn);
     <header>
         <div class="logo">
             <a href="index.php"><img src="LOGO.png" alt="AllVinylsMarket Logo" /></a>
-            <h3 style="color:red; font-family:brush script mt; font-size:160%;">AllVinylsMarket</h3>
+            <h3 style="color:#bb1e10; font-family:brush script mt; font-size:160%;">AllVinylsMarket</h3>
         </div>
         <div class="search-bar">
             <form action="search.php" method="GET">
@@ -48,9 +48,13 @@ $recentListings = getRecentListings($conn);
         <img src="Homepage.jpg" alt="Homepage" />
         <div class="hero-content">
             <div class="hero-text">
-                Liberati dal dubbio che non vi piacciono i vinili: quelli dei cari artisti preferiti!
+                E' arrivato il momento di liberare lo scaffale! <br>
+                <a href="catalogo.php" class="hero-button">SCOPRI COME FUNZIONA</a>
+               
+            <a href="catalogo.php?categoria=cassette" class="cassette-button">VENDI SUBITO</a>
+        
             </div>
-            <a href="catalogo.php" class="hero-button">SCOPRI ALTRO</a>
+            
         </div>
     </div>
     
@@ -61,7 +65,7 @@ $recentListings = getRecentListings($conn);
     
     <div class="cassette-box">
         <div class="cassette-info">
-            <a href="catalogo.php?categoria=cassette" class="cassette-button">VEDI SUBITO</a>
+            <a href="catalogo.php?categoria=cassette" class="cassette-button">VENDI SUBITO</a>
         </div>
         <div class="cassette-image">
             <img src="images/cassette.jpg" alt="Vintage cassette tapes" />

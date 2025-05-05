@@ -379,10 +379,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
             </div>
         </div>
-        
-        <footer>
-            © 2025 by Business Name. Built on Wix Studio
-        </footer>
     </div>
 </body>
 </html>     
