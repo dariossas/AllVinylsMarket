@@ -120,12 +120,15 @@ header {
 
 .cassette-image {
     flex: 1;
-    text-align: right;
+    text-align: center;
 }
 
 .cassette-image img {
     width: 80%;
     max-width: 300px;
+    object-fit: cover;
+    object-position: center center;  /* Centrato orizzontalmente e verticalmente */
+    position: absolute;
 }
 
 .cassette-info {
