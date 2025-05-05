@@ -224,11 +224,10 @@ $conversazioni = getConversazioniUtente($conn, $userId);
                 JOIN ANNUNCI a ON c.id_annuncio = a.id_annuncio
                 JOIN UTENTI u ON (u.id_utente = IF(c.id_utente1 = ?, c.id_utente2, c.id_utente1))
                 WHERE c.id_utente1 = ? OR c.id_utente2 = ?
-                HAVING ultimo_messaggio IS NOT NULL
                 ORDER BY ultimo_messaggio_data DESC";
         
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("iiiiiiiiiii", $userId, $userId, $userId, $userId, $userId, $userId, $userId, $userId, $userId, $userId, $userId);
+        $stmt->bind_param('iiiiiiiiiii', $userId, $userId, $userId, $userId, $userId, $userId, $userId, $userId, $userId);
         $stmt->execute();
         $result = $stmt->get_result();
         
