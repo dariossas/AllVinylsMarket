@@ -37,7 +37,7 @@ $recentListings = getRecentListings($conn);
                 <a href="messaggi.php" class="icon">📧</a>
                 <a href="preferiti.php" class="icon">❤️</a>
                 <a href="profilo.php" class="icon">👤</a>
-                <a href="logout.php" class="login-button">ESCI</a>
+                
             <?php else: ?>
                 <a href="login.php" class="login-button">ACCEDI/ISCRIVITI</a>
             <?php endif; ?>
@@ -50,25 +50,22 @@ $recentListings = getRecentListings($conn);
             <div class="hero-text">
                 E' arrivato il momento di liberare lo scaffale! <br>
                 <a href="catalogo.php" class="hero-button">SCOPRI COME FUNZIONA</a>
-               
-            <a href="catalogo.php?categoria=cassette" class="cassette-button">VENDI SUBITO</a>
-        
+                <a href="catalogo.php?categoria=cassette" class="cassette-button">VENDI SUBITO</a>
             </div>
-            
         </div>
     </div>
     
-    <div class="novita">
-        NOVITÀ
-        <h3>Vecchi CD e vinili tornano cool!</h3>
-    </div>
+    
     
     <div class="cassette-box">
-        
-        <div class="cassette-image">
-            <img src="cassette.png" alt="Vintage cassette tapes" />
+    <div class="cassette-image">
+        <div class="novita-overlay">
+            <div class="novita-title">NOVITÀ</div>
+            <h3 class="novita-text">Vecchi CD e vinili tornano cool!</h3>
         </div>
+        <img src="cassette.png" alt="Vintage cassette tapes" />
     </div>
+</div>
     
     <div class="lista-preferiti">
         <h3 class="preferiti-title">Lista dei preferiti</h3>
