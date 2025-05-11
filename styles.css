@@ -13,9 +13,10 @@ header {
     background-color: white;
     padding: 10px 20px;
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     border-bottom: 1px solid #eee;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .logo {
@@ -35,40 +36,65 @@ header {
 
 .search-bar input {
     width: 100%;
-    padding: 5px 10px;
-    border-radius: 15px;
-    border: 1px solid #ccc;
+    padding: 8px 15px;
+    border-radius: 20px;
+    border: 1px solid #e0e0e0;
+    background-color: #f8f8f8;
+    font-size: 14px;
 }
 
 .icons {
     display: flex;
-    gap: 10px;
+    gap: 15px;
+    align-items: center;
 }
 
 .login-button {
-    background-color: #bb1e10;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 5px;
+    background-color: #ffffff;
+    color: #bb1e10;
+    border: 1px solid #bb1e10;
+    padding: 6px 12px;
+    border-radius: 25px;
     cursor: pointer;
-    font-size: 12px;
+    font-size: 13px;
     text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.login-button:hover {
+    background-color: #f8e9e8;
+}
+
+.info-button {
+    background-color: #ffffff;
+    color: #bb1e10;
+    border: 1px solid #bb1e10;
+    padding: 6px 12px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 13px;
+    text-decoration: none;
+    margin: 10px;
+    transition: all 0.2s ease;
+}
+
+.info-button:hover {
+    background-color: #f8e9e8;
 }
 
 .hero {
     position: relative;
-    height: 400px;
+    height: 500px;
     overflow: hidden;
     background-color: #f0f0f0;
-    margin-bottom: 40px; /* Aggiungi spazio sotto l'hero */
+    margin-bottom: 40px;
 }
 
 .hero img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center center;  /* Centrato orizzontalmente e verticalmente */
+    object-position: center center;
     position: absolute;
     top: 0;
     left: 0;
@@ -78,32 +104,42 @@ header {
     position: absolute;
     top: 100px;
     left: 100px;
-    max-width: 250px;
+    max-width: 300px;
     z-index: 1;
+    border-radius: 15px;
 }
 
 .hero-text {
     background-color: rgba(255, 255, 255, 0.9);
     color: rgb(0, 0, 0);
-    padding: 10px;
-    margin-bottom: 10px;
-    font-size: 28px;
+    padding: 15px;
+    margin-bottom: 15px;
+    font-size: 24px;
+    font-family: Georgia, serif;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
 .hero-button {
     display: inline-block;
-    background-color: #bb1e10;
-    color: white;
-    padding: 5px 15px;
+    color: #bb1e10;
+    padding: 8px 18px;
     text-decoration: none;
     font-size: 14px;
+    border-radius: 25px;
+    position: relative;
+    left: 50px;
+    
 }
+
+
 
 .secondary-hero {
     background-color: rgb(255, 255, 255);
-    margin: 20px 0;
-    padding: 20px;
+    margin: 30px 0;
+    padding: 30px;
     text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
 
 .cassette-box {
@@ -119,71 +155,99 @@ header {
     width: 100%;
     max-width: 500px;
     position: relative;
+    overflow: hidden;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .novita-overlay {
     position: absolute;
-    top: 10px;
-    left: 0;
+    top: 15px;
+    left: 15px;
     right: 0;
     z-index: 2;
-    text-align: center;
-    text-shadow: 1px 1px 3px rgba(255,255,255,0.8);
+    text-align: left;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
 }
 
 .novita-title {
-    font-weight: bold;
-    color: #bb1e10;
+    font-weight: normal;
+    color: #ffffff;
     text-transform: uppercase;
     margin-bottom: 5px;
+    font-size: 14px;
+    letter-spacing: 1px;
 }
 
 .novita-text {
-    font-size: 18px;
-    color: #333;
+    font-size: 22px;
+    color: #ffffff;
+    font-weight: bold;
 }
 
 .cassette-image img {
     width: 100%;
-    max-width: 300px;
+    max-width: 100%;
+    height: auto;
     border-radius: 15px;
-    object-fit: contain;
+    object-fit: cover;
+    transition: transform 0.3s ease;
 }
+
+
 
 .cassette-info {
     text-align: center;
-    padding: 10px;
+    padding: 15px;
 }
 
 .cassette-button {
     display: inline-block;
     background-color: #bb1e10;
     color: white;
-    padding: 5px 15px;
+    padding: 8px 18px;
     text-decoration: none;
-    margin-top: 10px;
-    font-size: 12px;
+    margin-top: 15px;
+    font-size: 14px;
+    border-radius: 25px;
+    position: relative;
+    left: 80px;
+    border: none;
+    transition: background-color 0.2s ease;
+}
+
+.cassette-button:hover {
+    background-color: #951a0d;
 }
 
 .lista-preferiti {
-    margin: 20px;
+    margin: 40px 20px;
 }
 
 .preferiti-title {
-    margin-bottom: 15px;
-    font-size: 16px;
+    margin-bottom: 20px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
 }
 
 .vinyl-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 10px;
+    gap: 15px;
 }
 
 .vinyl-item {
     background-color: white;
-    padding: 10px;
-    text-align: center;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.vinyl-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
 }
 
 .vinyl-item a {
@@ -198,36 +262,102 @@ header {
 }
 
 .vinyl-item h4 {
-    font-size: 12px;
-    margin: 5px 0;
+    font-size: 13px;
+    margin: 8px 10px 4px;
+    color: #333;
 }
 
 .vinyl-item p {
-    font-size: 11px;
+    font-size: 12px;
     color: #666;
-    margin: 2px 0;
+    margin: 4px 10px;
 }
 
 .vinyl-item .price {
     font-weight: bold;
     color: #bb1e10;
-    margin-top: 5px;
-    font-size: 14px;
+    margin: 6px 10px 10px;
+    font-size: 16px;
 }
 
+/* Sezione Esplora - Stile Vinted-like */
 .esplora {
-    margin: 30px 20px;
+    margin: 40px auto;
+    max-width: 1200px;
+    padding: 0 20px;
 }
 
 .esplora-title {
-    margin-bottom: 15px;
-    font-size: 16px;
+    margin-bottom: 20px;
+    font-size: 22px;
+    font-weight: 600;
+    color: #333;
 }
 
 .esplora-grid {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 10px;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+}
+
+/* Stile delle card nella griglia esplora - simili a Vinted */
+.esplora-item {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    height: 280px; /* Altezza fissa per il contenitore */
+    transition: transform 0.2s ease;
+}
+
+.esplora-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+.esplora-item-image {
+    width: 100%;
+    height: 200px; /* Altezza fissa per l'immagine */
+    position: relative;
+    overflow: hidden;
+}
+
+.esplora-item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Questo fa sì che l'immagine riempia il contenitore senza distorsioni */
+    transition: transform 0.3s ease;
+}
+
+.esplora-item:hover .esplora-item-image img {
+    transform: scale(1.05);
+}
+
+.esplora-item-info {
+    padding: 10px;
+}
+
+.esplora-item-title {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #333;
+}
+
+.esplora-item-price {
+    font-size: 15px;
+    font-weight: 600;
+    color: #bb1e10;
+}
+
+.esplora-item-meta {
+    font-size: 12px;
+    color: #888;
+    margin-top: 2px;
 }
 
 .empty-message {
@@ -237,19 +367,19 @@ header {
     background-color: white;
     font-style: italic;
     color: #666;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
-/* ===== NUOVI STILI PER LOGIN E REGISTRAZIONE ===== */
-
-/* Stili condivisi per contenitori form */
+/* Login e Registrazione */
 .login-container,
 .registration-container {
     max-width: 600px;
-    margin: 30px auto;
-    padding: 20px;
+    margin: 40px auto;
+    padding: 30px;
     background-color: white;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
 .login-container {
@@ -259,101 +389,103 @@ header {
 .login-container h2,
 .registration-container h2 {
     color: #333;
-    margin-bottom: 5px;
+    margin-bottom: 10px;
+    font-weight: 600;
 }
 
 .login-container p,
 .registration-container p {
     color: #666;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
     font-size: 14px;
 }
 
-/* Stili per i gruppi di form */
 .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
+    margin-bottom: 8px;
+    font-weight: 500;
     font-size: 14px;
+    color: #444;
 }
 
 .form-group input,
 .form-group select {
     width: 100%;
-    padding: 8px;
+    padding: 10px 12px;
     border: 1px solid #ddd;
-    border-radius: 4px;
+    border-radius: 8px;
     font-size: 14px;
+    transition: border-color 0.2s ease;
 }
 
 .form-group input:focus,
 .form-group select:focus {
     border-color: #bb1e10;
     outline: none;
+    box-shadow: 0 0 0 2px rgba(187, 30, 16, 0.1);
 }
 
-/* Layout a due colonne */
 .form-row {
     display: flex;
-    gap: 15px;
+    gap: 20px;
 }
 
 .form-row .form-group {
     flex: 1;
 }
 
-/* Stili per messaggi */
 .error-message {
     color: #bb1e10;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     font-size: 14px;
-    padding: 8px;
+    padding: 10px;
     background-color: rgba(187, 30, 16, 0.1);
-    border-radius: 4px;
+    border-radius: 8px;
 }
 
 .success-message {
     color: #2e7d32;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     font-size: 14px;
-    padding: 8px;
+    padding: 10px;
     background-color: rgba(46, 125, 50, 0.1);
-    border-radius: 4px;
+    border-radius: 8px;
 }
 
-/* Bottone submit */
 .submit-button {
     background-color: #bb1e10;
     color: white;
     border: none;
-    padding: 10px 15px;
-    border-radius: 4px;
+    padding: 12px 20px;
+    border-radius: 25px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 15px;
     width: 100%;
-    transition: background-color 0.3s;
+    transition: background-color 0.2s ease;
+    font-weight: 500;
 }
 
 .submit-button:hover {
     background-color: #951a0d;
 }
 
-/* Links sotto i form */
 .login-link,
 .register-link {
     text-align: center;
-    margin-top: 15px;
+    margin-top: 20px;
     font-size: 14px;
+    color: #666;
 }
 
 .login-link a,
 .register-link a {
     color: #bb1e10;
     text-decoration: none;
+    font-weight: 500;
 }
 
 .login-link a:hover,
@@ -361,31 +493,37 @@ header {
     text-decoration: underline;
 }
 
-/* Stile per checkbox */
 input[type="checkbox"] + label {
     font-weight: normal;
+    display: inline-block;
+    margin-left: 8px;
+    cursor: pointer;
 }
 
-/* Stile per upload file */
 input[type="file"] {
-    padding: 5px;
+    padding: 8px;
     border: 1px solid #ddd;
-    border-radius: 4px;
+    border-radius: 8px;
     width: 100%;
+    font-size: 14px;
+    background-color: #f8f8f8;
 }
 
-/* Stile per readonly input */
 input[readonly] {
     background-color: #f5f5f5;
     cursor: not-allowed;
 }
 
 /* Responsive adjustments */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
+    .esplora-grid,
     .vinyl-grid {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(4, 1fr);
     }
-    
+}
+
+@media (max-width: 768px) {
+    .vinyl-grid,
     .esplora-grid {
         grid-template-columns: repeat(3, 1fr);
     }
@@ -394,21 +532,204 @@ input[readonly] {
         flex-direction: column;
         gap: 0;
     }
+    
+    .hero-content {
+        left: 50px;
+        top: 80px;
+    }
 }
 
-@media (max-width: 480px) {
-    .vinyl-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
+@media (max-width: 576px) {
+    .vinyl-grid,
     .esplora-grid {
         grid-template-columns: repeat(2, 1fr);
     }
     
     .login-container,
     .registration-container {
-        padding: 15px;
-        margin: 15px;
+        padding: 20px;
+        margin: 20px;
         width: auto;
+    }
+    
+    .hero-content {
+        left: 30px;
+        top: 60px;
+        max-width: 250px;
+    }
+    
+    .hero-text {
+        font-size: 20px;
+        padding: 12px;
+    }
+    
+    .esplora-item {
+        height: 250px;
+    }
+    
+    .esplora-item-image {
+        height: 180px;
+    }
+}
+
+@media (max-width: 480px) {
+    .empty-message {
+        grid-column: span 2;
+    }
+    
+    .hero {
+        height: 400px;
+    }
+}
+
+ /* Stili per il menu di navigazione stile Vinted */
+ 
+ .navigation-menu {
+    background-color: #fff;
+    border-bottom: 1px solid #e5e5e5;
+    padding: 12px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+}
+
+.menu-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    gap: 5px;
+}
+
+.category-dropdown {
+    position: relative;
+    margin-right: 5px;
+}
+
+.category-btn {
+    padding: 2px 2px;
+    border: none;
+    background-color: transparent;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 200;
+    color: #3333337e;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.category-btn:hover {
+    background-color: #f5f5f5;
+}
+
+.category-btn:after {
+    content: '▼';
+    margin-left: 5px;
+    font-size: 8px;
+    color: #888;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: white;
+    min-width: 220px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.1);
+    z-index: 1000;
+    border-radius: 8px;
+    padding: 10px 0;
+    left: 0;
+    top: 100%;
+    margin-top: 5px;
+}
+
+.category-dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown-content a {
+    color: #333;
+    padding: 10px 16px;
+    text-decoration: none;
+    display: block;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.dropdown-content a:hover {
+    background-color: #f8f8f8;
+}
+
+.filter-divider {
+    height: 24px;
+    width: 1px;
+    background-color: #e5e5e5;
+    margin: 0 5px;
+}
+
+.price-filter {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    background-color: #f8f8f8;
+    border-radius: 25px;
+    padding: 5px 15px;
+}
+
+.price-filter label {
+    margin-right: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #555;
+}
+
+.price-filter input[type="range"] {
+    width: 150px;
+    accent-color: #bb1e10;
+}
+
+.price-display {
+    margin-left: 10px;
+    font-weight: 600;
+    min-width: 90px;
+    color: #333;
+    font-size: 14px;
+}
+
+.apply-filter {
+    background-color: #bb1e10;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 15px;
+    margin-left: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 10px;
+    transition: background-color 0.2s;
+}
+
+.apply-filter:hover {
+    background-color: #a01a0e;
+}
+
+/* Responsive menu */
+@media (max-width: 768px) {
+    .menu-container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .price-filter {
+        margin-left: 0;
+        margin-top: 10px;
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .filter-divider {
+        display: none;
     }
 }
