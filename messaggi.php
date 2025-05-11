@@ -138,7 +138,7 @@ $conversazioni = getConversazioniUtente($conn, $userId);
     <header>
         <div class="logo">
             <a href="index.php"><img src="LOGO.png" alt="AllVinylsMarket Logo" /></a>
-            <h3 style="color:red; font-family:brush script mt; font-size:160%;">AllVinylsMarket</h3>
+            <h3 style="color: #bb1e10; font-family:brush script mt; font-size:160%;">AllVinylsMarket</h3>
         </div>
         <div class="search-bar">
             <form action="search.php" method="GET">
@@ -149,7 +149,7 @@ $conversazioni = getConversazioniUtente($conn, $userId);
             <a href="messaggi.php" class="icon" style="font-weight: bold;">📧</a>
             <a href="preferiti.php" class="icon">❤️</a>
             <a href="profilo.php" class="icon">👤</a>
-            <a href="logout.php" class="login-button">ESCI</a>
+            
         </div>
     </header>
     
@@ -162,7 +162,7 @@ $conversazioni = getConversazioniUtente($conn, $userId);
             <?php if (empty($conversazioni)): ?>
                 <div class="no-conversazioni">
                     <p>Non hai ancora conversazioni attive.</p>
-                    <p>Esplora il <a href="catalogo.php">catalogo</a> e contatta i venditori per iniziare a chattare!</p>
+                    <p>Esplora il <a href="index.php">catalogo</a> e contatta i venditori per iniziare a chattare!</p>
                 </div>
             <?php else: ?>
                 <?php foreach ($conversazioni as $conv): ?>
@@ -203,40 +203,40 @@ $conversazioni = getConversazioniUtente($conn, $userId);
         </div>
     </div>
     
-    <?php
-    // Funzione per ottenere tutte le conversazioni dell'utente
-    function getConversazioniUtente($conn, $userId) {
-        $conversazioni = [];
-        
-        // Seleziona tutte le chat dell'utente con il messaggio più recente
-        $sql = "SELECT c.*, 
-                    u.username, u.immagine_profilo,
-                    a.titolo AS titolo_annuncio, a.immagine_copertina,
-                    (SELECT contenuto FROM MESSAGGI WHERE 
-                        (id_mittente = ? AND id_destinatario = IF(c.id_utente1 = ?, c.id_utente2, c.id_utente1)) OR 
-                        (id_mittente = IF(c.id_utente1 = ?, c.id_utente2, c.id_utente1) AND id_destinatario = ?)
-                    ORDER BY data_invio DESC LIMIT 1) AS ultimo_messaggio,
-                    (SELECT data_invio FROM MESSAGGI WHERE 
-                        (id_mittente = ? AND id_destinatario = IF(c.id_utente1 = ?, c.id_utente2, c.id_utente1)) OR 
-                        (id_mittente = IF(c.id_utente1 = ?, c.id_utente2, c.id_utente1) AND id_destinatario = ?)
-                    ORDER BY data_invio DESC LIMIT 1) AS ultimo_messaggio_data
-                FROM CHATS c
-                JOIN ANNUNCI a ON c.id_annuncio = a.id_annuncio
-                JOIN UTENTI u ON (u.id_utente = IF(c.id_utente1 = ?, c.id_utente2, c.id_utente1))
-                WHERE c.id_utente1 = ? OR c.id_utente2 = ?
-                ORDER BY ultimo_messaggio_data DESC";
-        
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param('iiiiiiiiiii', $userId, $userId, $userId, $userId, $userId, $userId, $userId, $userId, $userId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
-        while ($row = $result->fetch_assoc()) {
-            $conversazioni[] = $row;
-        }
-        
-        return $conversazioni;
+<?php
+// Funzione per ottenere tutte le conversazioni dell'utente
+function getConversazioniUtente($conn, $userId) {
+    $conversazioni = [];
+    
+    // Seleziona tutte le chat dell'utente con il messaggio più recente
+    $sql = "SELECT c.*, 
+                u.username, u.immagine_profilo,
+                a.titolo AS titolo_annuncio, a.immagine_copertina,
+                (SELECT contenuto FROM MESSAGGI WHERE 
+                    (id_mittente = ? AND id_destinatario = IF(c.id_utente1 = ?, c.id_utente2, c.id_utente1)) OR 
+                    (id_mittente = IF(c.id_utente1 = ?, c.id_utente2, c.id_utente1) AND id_destinatario = ?)
+                ORDER BY data_invio DESC LIMIT 1) AS ultimo_messaggio,
+                (SELECT data_invio FROM MESSAGGI WHERE 
+                    (id_mittente = ? AND id_destinatario = IF(c.id_utente1 = ?, c.id_utente2, c.id_utente1)) OR 
+                    (id_mittente = IF(c.id_utente1 = ?, c.id_utente2, c.id_utente1) AND id_destinatario = ?)
+                ORDER BY data_invio DESC LIMIT 1) AS ultimo_messaggio_data
+            FROM CHATS c
+            JOIN ANNUNCI a ON c.id_annuncio = a.id_annuncio
+            JOIN UTENTI u ON (u.id_utente = IF(c.id_utente1 = ?, c.id_utente2, c.id_utente1))
+            WHERE c.id_utente1 = ? OR c.id_utente2 = ?
+            ORDER BY ultimo_messaggio_data DESC";
+    
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param('iiiiiiiiiii', $userId, $userId, $userId, $userId, $userId, $userId, $userId, $userId, $userId, $userId, $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    while ($row = $result->fetch_assoc()) {
+        $conversazioni[] = $row;
     }
-    ?>
+    
+    return $conversazioni;
+}
+?>
 </body>
 </html>
