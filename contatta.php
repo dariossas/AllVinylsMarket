@@ -1,54 +1,64 @@
-
 <?php
-// contatta.php - Sistema di chat per AllVinylsMarket
+// contatta.php - Gestisce la chat tra utenti per AllVinylsMarket
 require_once 'functions.php';
 
 // Verifica se l'utente è loggato
 if (!isLoggedIn()) {
-    // Reindirizza alla pagina di login con un parametro per tornare qui dopo il login
-    header("Location: login.php?redirect=contatta.php&" . http_build_query($_GET));
+    // Reindirizza alla pagina di login con redirect dopo il login
+    header("Location: login.php?redirect=contatta.php" . (isset($_GET['id']) ? "&id=" . $_GET['id'] : "") . 
+        (isset($_GET['venditore']) ? "&venditore=" . $_GET['venditore'] : ""));
     exit();
 }
 
-// Recupera i parametri dall'URL
-$annuncioId = isset($_GET['id']) ? intval($_GET['id']) : 0;
-$venditoreId = isset($_GET['venditore']) ? intval($_GET['venditore']) : 0;
-$utenteId = getCurrentUserId();
+$userId = getCurrentUserId();
 
-// Verifica che l'annuncio e il venditore esistano
-$annuncio = getAnnuncioById($conn, $annuncioId);
-$venditore = getUtenteById($conn, $venditoreId);
-
-if (!$annuncio || !$venditore) {
-    // Se l'annuncio o il venditore non esistono, reindirizza alla home
+// Verifica se sono stati passati i parametri necessari
+if (!isset($_GET['id']) || !isset($_GET['venditore'])) {
     header("Location: index.php");
     exit();
 }
 
-// Verifica che l'utente non stia cercando di chattare con se stesso
-if ($utenteId == $venditoreId) {
-    // Redirect alla pagina dell'annuncio con un messaggio di errore
-    header("Location: annuncio.php?id=$annuncioId&error=proprio_annuncio");
+$annuncioId = intval($_GET['id']);
+$venditoreId = intval($_GET['venditore']);
+
+// Verifica se l'annuncio esiste
+$annuncio = getAnnuncioById($conn, $annuncioId);
+if (!$annuncio) {
+    header("Location: index.php");
     exit();
 }
 
-// Cerca o crea una chat esistente
-$chatId = getChatId($conn, $utenteId, $venditoreId, $annuncioId);
+// Verifica se il venditore esiste
+$venditore = getVenditoreById($conn, $venditoreId);
+if (!$venditore) {
+    header("Location: index.php");
+    exit();
+}
+
+// Se l'utente è il venditore, reindirizza alla pagina dell'annuncio
+if ($userId == $venditoreId) {
+    header("Location: annuncio.php?id=" . $annuncioId);
+    exit();
+}
+
+// Ottieni o crea la chat
+$chatId = getOrCreateChat($conn, $userId, $venditoreId, $annuncioId);
 
 // Gestisci l'invio di un nuovo messaggio
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['messaggio']) && !empty(trim($_POST['messaggio']))) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['messaggio'])) {
     $messaggio = trim($_POST['messaggio']);
-    
-    // Inserisci il messaggio nel database
-    if (inviaMessaggio($conn, $utenteId, $venditoreId, $messaggio)) {
-        // Refresh della pagina per mostrare il nuovo messaggio
-        header("Location: contatta.php?id=$annuncioId&venditore=$venditoreId");
+    if (!empty($messaggio)) {
+        // Inserisci il messaggio nel database
+        inviaMessaggio($conn, $userId, $venditoreId, $messaggio);
+        
+        // Refresh per evitare ritrasmissione del form
+        header("Location: contatta.php?id=" . $annuncioId . "&venditore=" . $venditoreId);
         exit();
     }
 }
 
-// Recupera i messaggi della chat
-$messaggi = getMessaggiChat($conn, $utenteId, $venditoreId);
+// Ottieni i messaggi tra gli utenti per questo annuncio
+$messaggi = getMessaggi($conn, $userId, $venditoreId);
 ?>
 
 <!DOCTYPE html>
@@ -62,140 +72,194 @@ $messaggi = getMessaggiChat($conn, $utenteId, $venditoreId);
         .chat-container {
             max-width: 1000px;
             margin: 20px auto;
+            display: flex;
             background-color: white;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             overflow: hidden;
+            height: 80vh;
+        }
+        
+        .chat-sidebar {
+            width: 300px;
+            border-right: 1px solid #eee;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-annuncio {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .chat-annuncio-img {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .chat-annuncio-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .chat-annuncio-price {
+            color: #bb1e10;
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        
+        .chat-venditore {
+            padding: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .chat-venditore-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #f0f0f0;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #888;
+        }
+        
+        .chat-venditore-info {
+            flex: 1;
+        }
+        
+        .chat-venditore-name {
+            font-weight: bold;
+        }
+        
+        .chat-venditore-status {
+            font-size: 12px;
+            color: #888;
+        }
+        
+        .chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
         
         .chat-header {
-            background-color: #bb1e10;
-            color: white;
             padding: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        
-        .chat-header-left {
-            display: flex;
-            align-items: center;
-        }
-        
-        .chat-header img {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            margin-right: 10px;
-            object-fit: cover;
-            background-color: #f5f5f5;
-        }
-        
-        .annuncio-preview {
-            background-color: #f9f9f9;
-            padding: 10px 15px;
             border-bottom: 1px solid #eee;
-            display: flex;
-            align-items: center;
-        }
-        
-        .annuncio-preview img {
-            width: 60px;
-            height: 60px;
-            object-fit: cover;
-            margin-right: 15px;
-        }
-        
-        .annuncio-info h4 {
-            margin: 0;
-            font-size: 16px;
-        }
-        
-        .annuncio-info .price {
-            color: #bb1e10;
             font-weight: bold;
-            margin-top: 5px;
         }
         
         .chat-messages {
-            height: 400px;
-            overflow-y: auto;
+            flex: 1;
             padding: 15px;
-            background-color: #f5f5f5;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
         
         .message {
-            margin-bottom: 15px;
-            max-width: 80%;
+            max-width: 70%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            position: relative;
+            word-wrap: break-word;
         }
         
         .message-sent {
-            margin-left: auto;
-            background-color: #dcf8c6;
-            border-radius: 8px 0 8px 8px;
-            padding: 10px;
+            align-self: flex-end;
+            background-color: #bb1e10;
+            color: white;
+            border-bottom-right-radius: 4px;
         }
         
         .message-received {
-            margin-right: auto;
-            background-color: white;
-            border-radius: 0 8px 8px 8px;
-            padding: 10px;
-            border: 1px solid #eee;
+            align-self: flex-start;
+            background-color: #f0f0f0;
+            color: #333;
+            border-bottom-left-radius: 4px;
         }
         
-        .message-meta {
-            font-size: 12px;
-            color: #888;
+        .message-time {
+            font-size: 11px;
+            opacity: 0.7;
+            margin-top: 4px;
+            display: inline-block;
+        }
+        
+        .message-sent .message-time {
             text-align: right;
-            margin-top: 5px;
         }
         
-        .chat-input {
+        .chat-form {
             padding: 15px;
             border-top: 1px solid #eee;
             display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
-        .chat-input textarea {
+        .chat-input {
             flex: 1;
+            padding: 12px 15px;
             border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 10px;
-            resize: none;
-            height: 60px;
-            font-family: inherit;
+            border-radius: 24px;
             font-size: 14px;
         }
         
-        .chat-input button {
+        .chat-input:focus {
+            outline: none;
+            border-color: #bb1e10;
+        }
+        
+        .chat-send {
             background-color: #bb1e10;
             color: white;
             border: none;
-            border-radius: 4px;
-            padding: 0 15px;
-            margin-left: 10px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        
+        .chat-send:hover {
+            background-color: #a01a0d;
         }
         
         .no-messages {
             text-align: center;
             color: #888;
+            margin: auto;
             padding: 20px;
         }
         
-        .back-link {
-            color: white;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-        }
-        
-        .back-link:before {
-            content: "←";
-            margin-right: 5px;
-            font-size: 18px;
+        @media (max-width: 768px) {
+            .chat-container {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .chat-sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #eee;
+            }
+            
+            .chat-main {
+                height: 60vh;
+            }
         }
     </style>
 </head>
@@ -203,7 +267,7 @@ $messaggi = getMessaggiChat($conn, $utenteId, $venditoreId);
     <header>
         <div class="logo">
             <a href="index.php"><img src="LOGO.png" alt="AllVinylsMarket Logo" /></a>
-            <h3 style="color:red; font-family:brush script mt; font-size:160%;">AllVinylsMarket</h3>
+            <h3 style="color: #bb1e10; font-family:brush script mt; font-size:160%;">AllVinylsMarket</h3>
         </div>
         <div class="search-bar">
             <form action="search.php" method="GET">
@@ -211,526 +275,175 @@ $messaggi = getMessaggiChat($conn, $utenteId, $venditoreId);
             </form>
         </div>
         <div class="icons">
-            <a href="messaggi.php" class="icon">📧</a>
+            <a href="messaggi.php" class="icon" style="font-weight: bold;">📧</a>
             <a href="preferiti.php" class="icon">❤️</a>
             <a href="profilo.php" class="icon">👤</a>
-            <a href="logout.php" class="login-button">ESCI</a>
         </div>
     </header>
     
     <div class="chat-container">
-        <div class="chat-header">
-            <div class="chat-header-left">
-                <a href="annuncio.php?id=<?php echo $annuncioId; ?>" class="back-link">Torna all'annuncio</a>
+        <div class="chat-sidebar">
+            <div class="chat-annuncio">
+                <img src="<?php echo $annuncio['immagine_copertina']; ?>" alt="<?php echo htmlspecialchars($annuncio['titolo']); ?>" class="chat-annuncio-img" onerror="this.src='https://via.placeholder.com/300'">
+                <div class="chat-annuncio-title"><?php echo htmlspecialchars($annuncio['titolo']); ?></div>
+                <div class="chat-annuncio-price"><?php echo number_format($annuncio['prezzo'], 2, ',', '.'); ?>€</div>
+                <a href="annuncio.php?id=<?php echo $annuncioId; ?>" class="info-button" style="display: block; text-align: center;">Vedi annuncio</a>
             </div>
-            <div class="chat-header-right">
+            
+            <div class="chat-venditore">
+                <div class="chat-venditore-avatar">
+                    <?php if (!empty($venditore['immagine_profilo'])): ?>
+                        <img src="<?php echo $venditore['immagine_profilo']; ?>" alt="Profilo" style="width:100%; height:100%; object-fit:cover;">
+                    <?php else: ?>
+                        👤
+                    <?php endif; ?>
+                </div>
+                <div class="chat-venditore-info">
+                    <div class="chat-venditore-name"><?php echo htmlspecialchars($venditore['username']); ?></div>
+                    <div class="chat-venditore-status">Venditore</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-main">
+            <div class="chat-header">
                 Chat con <?php echo htmlspecialchars($venditore['username']); ?>
             </div>
-        </div>
-        
-        <div class="annuncio-preview">
-            <img src="<?php echo $annuncio['immagine_copertina']; ?>" alt="<?php echo htmlspecialchars($annuncio['titolo']); ?>" onerror="this.src='https://via.placeholder.com/60x60'">
-            <div class="annuncio-info">
-                <h4><?php echo htmlspecialchars($annuncio['titolo']); ?></h4>
-                <p class="price">€<?php echo number_format($annuncio['prezzo'], 2, ',', '.'); ?></p>
-            </div>
-        </div>
-        
-        <div class="chat-messages" id="chat-messages">
-            <?php if (empty($messaggi)): ?>
-                <div class="no-messages">
-                    Inizia la conversazione con <?php echo htmlspecialchars($venditore['username']); ?>.
-                </div>
-            <?php else: ?>
-                <?php foreach ($messaggi as $messaggio): ?>
-                    <?php $isSent = $messaggio['id_mittente'] == $utenteId; ?>
-                    <div class="message <?php echo $isSent ? 'message-sent' : 'message-received'; ?>">
-                        <div class="message-content">
-                            <?php echo nl2br(htmlspecialchars($messaggio['contenuto'])); ?>
-                        </div>
-                        <div class="message-meta">
-                            <?php echo date('d/m/Y H:i', strtotime($messaggio['data_invio'])); ?>
-                        </div>
+            
+            <div class="chat-messages" id="chatMessages">
+                <?php if (empty($messaggi)): ?>
+                    <div class="no-messages">
+                        Inizia a chattare con <?php echo htmlspecialchars($venditore['username']); ?>
                     </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
+                <?php else: ?>
+                    <?php foreach ($messaggi as $msg): ?>
+                        <div class="message <?php echo ($msg['id_mittente'] == $userId) ? 'message-sent' : 'message-received'; ?>">
+                            <?php echo htmlspecialchars($msg['contenuto']); ?>
+                            <div class="message-time">
+                                <?php echo date('d/m/Y H:i', strtotime($msg['data_invio'])); ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+            
+            <form class="chat-form" method="POST">
+                <input type="text" name="messaggio" class="chat-input" placeholder="Scrivi un messaggio..." autocomplete="off" required>
+                <button type="submit" class="chat-send">➤</button>
+            </form>
         </div>
-        
-        <form class="chat-input" method="POST" action="">
-            <textarea name="messaggio" placeholder="Scrivi un messaggio..." required></textarea>
-            <button type="submit">Invia</button>
-        </form>
     </div>
     
     <script>
-        // Auto-scroll to the bottom of the chat on page load
+        // Scroll automatico alla fine dei messaggi
         document.addEventListener('DOMContentLoaded', function() {
-            var chatMessages = document.getElementById('chat-messages');
+            const chatMessages = document.getElementById('chatMessages');
             chatMessages.scrollTop = chatMessages.scrollHeight;
         });
     </script>
-    
-    <?php
-    // Funzioni per la gestione della chat
-    
-    // Ottiene i dati di un utente dal database
-    function getUtenteById($conn, $id) {
-        $id = intval($id);
-        $sql = "SELECT id_utente, username, immagine_profilo FROM UTENTI WHERE id_utente = ?";
-        
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
-        if ($result->num_rows > 0) {
-            return $result->fetch_assoc();
-        }
-        
-        return null;
-    }
-    
-    // Ottiene i dati di un annuncio dal database
-    function getAnnuncioById($conn, $id) {
-        $id = intval($id);
-        $sql = "SELECT * FROM ANNUNCI WHERE id_annuncio = ?";
-        
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
-        if ($result->num_rows > 0) {
-            return $result->fetch_assoc();
-        }
-        
-        return null;
-    }
-    
-    // Ottiene o crea una chat tra due utenti per un annuncio specifico
-    function getChatId($conn, $utente1, $utente2, $annuncioId) {
-        // Cerca una chat esistente
-        $sql = "SELECT id_chat FROM CHATS 
-                WHERE (id_utente1 = ? AND id_utente2 = ? AND id_annuncio = ?) 
-                OR (id_utente1 = ? AND id_utente2 = ? AND id_annuncio = ?)";
-        
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("iiiiii", $utente1, $utente2, $annuncioId, $utente2, $utente1, $annuncioId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
-        if ($result->num_rows > 0) {
-            $row = $result->fetch_assoc();
-            return $row['id_chat'];
-        }
-        
-        // Crea una nuova chat
-        $sql = "INSERT INTO CHATS (id_utente1, id_utente2, id_annuncio) VALUES (?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("iii", $utente1, $utente2, $annuncioId);
-        
-        if ($stmt->execute()) {
-            return $conn->insert_id;
-        }
-        
-        return null;
-    }
-    
-    // Inserisce un nuovo messaggio nel database
-    function inviaMessaggio($conn, $mittente, $destinatario, $contenuto) {
-        $sql = "INSERT INTO MESSAGGI (id_mittente, id_destinatario, contenuto) VALUES (?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("iis", $mittente, $destinatario, $contenuto);
-        
-        return $stmt->execute();
-    }
-    
-    // Recupera i messaggi tra due utenti
-    function getMessaggiChat($conn, $utente1, $utente2) {
-        $sql = "SELECT * FROM MESSAGGI 
-                WHERE (id_mittente = ? AND id_destinatario = ?) 
-                OR (id_mittente = ? AND id_destinatario = ?)
-                ORDER BY data_invio ASC";
-                
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("iiii", $utente1, $utente2, $utente2, $utente1);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
-        $messaggi = [];
-        while ($row = $result->fetch_assoc()) {
-            $messaggi[] = $row;
-        }
-        
-        return $messaggi;
-    }
-    ?>
-</body>
+
 <?php
-// contatta.php - Sistema di chat per AllVinylsMarket
-require_once 'functions.php';
+/**
+ * Ottiene un annuncio dal database in base all'ID
+ */
+function getAnnuncioById($conn, $id) {
+    $id = intval($id);
+    $sql = "SELECT a.*, u.username as venditore_username 
+            FROM ANNUNCI a 
+            JOIN UTENTI u ON a.id_utente = u.id_utente 
+            WHERE a.id_annuncio = ?";
 
-// Verifica se l'utente è loggato
-if (!isLoggedIn()) {
-    // Reindirizza alla pagina di login con un parametro per tornare qui dopo il login
-    header("Location: login.php?redirect=contatta.php&" . http_build_query($_GET));
-    exit();
-}
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-// Recupera i parametri dall'URL
-$annuncioId = isset($_GET['id']) ? intval($_GET['id']) : 0;
-$venditoreId = isset($_GET['venditore']) ? intval($_GET['venditore']) : 0;
-$utenteId = getCurrentUserId();
-
-// Verifica che l'annuncio e il venditore esistano
-$annuncio = getAnnuncioById($conn, $annuncioId);
-$venditore = getUtenteById($conn, $venditoreId);
-
-if (!$annuncio || !$venditore) {
-    // Se l'annuncio o il venditore non esistono, reindirizza alla home
-    header("Location: index.php");
-    exit();
-}
-
-// Verifica che l'utente non stia cercando di chattare con se stesso
-if ($utenteId == $venditoreId) {
-    // Redirect alla pagina dell'annuncio con un messaggio di errore
-    header("Location: annuncio.php?id=$annuncioId&error=proprio_annuncio");
-    exit();
-}
-
-// Cerca o crea una chat esistente
-$chatId = getChatId($conn, $utenteId, $venditoreId, $annuncioId);
-
-// Gestisci l'invio di un nuovo messaggio
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['messaggio']) && !empty(trim($_POST['messaggio']))) {
-    $messaggio = trim($_POST['messaggio']);
-    
-    // Inserisci il messaggio nel database
-    if (inviaMessaggio($conn, $utenteId, $venditoreId, $messaggio)) {
-        // Refresh della pagina per mostrare il nuovo messaggio
-        header("Location: contatta.php?id=$annuncioId&venditore=$venditoreId");
-        exit();
+    if ($result->num_rows > 0) {
+        return $result->fetch_assoc();
     }
+
+    return null;
 }
 
-// Recupera i messaggi della chat
-$messaggi = getMessaggiChat($conn, $utenteId, $venditoreId);
+/**
+ * Ottiene le informazioni del venditore dal database
+ */
+function getVenditoreById($conn, $id) {
+    $id = intval($id);
+    $sql = "SELECT id_utente, username, email, immagine_profilo FROM UTENTI WHERE id_utente = ?";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        return $result->fetch_assoc();
+    }
+
+    return null;
+}
+
+/**
+ * Verifica se esiste già una chat tra i due utenti per l'annuncio specificato,
+ * altrimenti ne crea una nuova
+ */
+function getOrCreateChat($conn, $userId, $venditoreId, $annuncioId) {
+    // Prima cerca se esiste già una chat
+    $sql = "SELECT id_chat FROM CHATS WHERE 
+            ((id_utente1 = ? AND id_utente2 = ?) OR (id_utente1 = ? AND id_utente2 = ?)) 
+            AND id_annuncio = ?";
+    
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("iiiii", $userId, $venditoreId, $venditoreId, $userId, $annuncioId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        return $row['id_chat'];
+    }
+    
+    // Se non esiste, crea una nuova chat
+    $sql = "INSERT INTO CHATS (id_utente1, id_utente2, id_annuncio, data_creazione) VALUES (?, ?, ?, NOW())";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("iii", $userId, $venditoreId, $annuncioId);
+    $stmt->execute();
+    
+    return $conn->insert_id;
+}
+
+/**
+ * Invia un messaggio da un utente all'altro
+ */
+function inviaMessaggio($conn, $mittente, $destinatario, $contenuto) {
+    $sql = "INSERT INTO MESSAGGI (id_mittente, id_destinatario, contenuto, data_invio) VALUES (?, ?, ?, NOW())";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("iis", $mittente, $destinatario, $contenuto);
+    return $stmt->execute();
+}
+
+/**
+ * Ottiene i messaggi tra due utenti
+ */
+function getMessaggi($conn, $utente1, $utente2) {
+    $messaggi = [];
+    $sql = "SELECT * FROM MESSAGGI 
+            WHERE (id_mittente = ? AND id_destinatario = ?) 
+            OR (id_mittente = ? AND id_destinatario = ?) 
+            ORDER BY data_invio ASC";
+    
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("iiii", $utente1, $utente2, $utente2, $utente1);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    while ($row = $result->fetch_assoc()) {
+        $messaggi[] = $row;
+    }
+    
+    return $messaggi;
+}
 ?>
-
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat con <?php echo htmlspecialchars($venditore['username']); ?> - AllVinylsMarket</title>
-    <link rel="stylesheet" href="styles.css">
-    <style>
-        .chat-container {
-            max-width: 1000px;
-            margin: 20px auto;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-        
-        .chat-header {
-            background-color: #bb1e10;
-            color: white;
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        
-        .chat-header-left {
-            display: flex;
-            align-items: center;
-        }
-        
-        .chat-header img {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            margin-right: 10px;
-            object-fit: cover;
-            background-color: #f5f5f5;
-        }
-        
-        .annuncio-preview {
-            background-color: #f9f9f9;
-            padding: 10px 15px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            align-items: center;
-        }
-        
-        .annuncio-preview img {
-            width: 60px;
-            height: 60px;
-            object-fit: cover;
-            margin-right: 15px;
-        }
-        
-        .annuncio-info h4 {
-            margin: 0;
-            font-size: 16px;
-        }
-        
-        .annuncio-info .price {
-            color: #bb1e10;
-            font-weight: bold;
-            margin-top: 5px;
-        }
-        
-        .chat-messages {
-            height: 400px;
-            overflow-y: auto;
-            padding: 15px;
-            background-color: #f5f5f5;
-        }
-        
-        .message {
-            margin-bottom: 15px;
-            max-width: 80%;
-        }
-        
-        .message-sent {
-            margin-left: auto;
-            background-color: #dcf8c6;
-            border-radius: 8px 0 8px 8px;
-            padding: 10px;
-        }
-        
-        .message-received {
-            margin-right: auto;
-            background-color: white;
-            border-radius: 0 8px 8px 8px;
-            padding: 10px;
-            border: 1px solid #eee;
-        }
-        
-        .message-meta {
-            font-size: 12px;
-            color: #888;
-            text-align: right;
-            margin-top: 5px;
-        }
-        
-        .chat-input {
-            padding: 15px;
-            border-top: 1px solid #eee;
-            display: flex;
-        }
-        
-        .chat-input textarea {
-            flex: 1;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 10px;
-            resize: none;
-            height: 60px;
-            font-family: inherit;
-            font-size: 14px;
-        }
-        
-        .chat-input button {
-            background-color: #bb1e10;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 0 15px;
-            margin-left: 10px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        
-        .no-messages {
-            text-align: center;
-            color: #888;
-            padding: 20px;
-        }
-        
-        .back-link {
-            color: white;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-        }
-        
-        .back-link:before {
-            content: "←";
-            margin-right: 5px;
-            font-size: 18px;
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <div class="logo">
-            <a href="index.php"><img src="LOGO.png" alt="AllVinylsMarket Logo" /></a>
-            <h3 style="color:red; font-family:brush script mt; font-size:160%;">AllVinylsMarket</h3>
-        </div>
-        <div class="search-bar">
-            <form action="search.php" method="GET">
-                <input type="text" name="q" placeholder="Cerca prodotti">
-            </form>
-        </div>
-        <div class="icons">
-            <a href="messaggi.php" class="icon">📧</a>
-            <a href="preferiti.php" class="icon">❤️</a>
-            <a href="profilo.php" class="icon">👤</a>
-            <a href="logout.php" class="login-button">ESCI</a>
-        </div>
-    </header>
-    
-    <div class="chat-container">
-        <div class="chat-header">
-            <div class="chat-header-left">
-                <a href="annuncio.php?id=<?php echo $annuncioId; ?>" class="back-link">Torna all'annuncio</a>
-            </div>
-            <div class="chat-header-right">
-                Chat con <?php echo htmlspecialchars($venditore['username']); ?>
-            </div>
-        </div>
-        
-        <div class="annuncio-preview">
-            <img src="<?php echo $annuncio['immagine_copertina']; ?>" alt="<?php echo htmlspecialchars($annuncio['titolo']); ?>" onerror="this.src='https://via.placeholder.com/60x60'">
-            <div class="annuncio-info">
-                <h4><?php echo htmlspecialchars($annuncio['titolo']); ?></h4>
-                <p class="price">€<?php echo number_format($annuncio['prezzo'], 2, ',', '.'); ?></p>
-            </div>
-        </div>
-        
-        <div class="chat-messages" id="chat-messages">
-            <?php if (empty($messaggi)): ?>
-                <div class="no-messages">
-                    Inizia la conversazione con <?php echo htmlspecialchars($venditore['username']); ?>.
-                </div>
-            <?php else: ?>
-                <?php foreach ($messaggi as $messaggio): ?>
-                    <?php $isSent = $messaggio['id_mittente'] == $utenteId; ?>
-                    <div class="message <?php echo $isSent ? 'message-sent' : 'message-received'; ?>">
-                        <div class="message-content">
-                            <?php echo nl2br(htmlspecialchars($messaggio['contenuto'])); ?>
-                        </div>
-                        <div class="message-meta">
-                            <?php echo date('d/m/Y H:i', strtotime($messaggio['data_invio'])); ?>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </div>
-        
-        <form class="chat-input" method="POST" action="">
-            <textarea name="messaggio" placeholder="Scrivi un messaggio..." required></textarea>
-            <button type="submit">Invia</button>
-        </form>
-    </div>
-    
-    <script>
-        // Auto-scroll to the bottom of the chat on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            var chatMessages = document.getElementById('chat-messages');
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        });
-    </script>
-    
-    <?php
-    // Funzioni per la gestione della chat
-    
-    // Ottiene i dati di un utente dal database
-    function getUtenteById($conn, $id) {
-        $id = intval($id);
-        $sql = "SELECT id_utente, username, immagine_profilo FROM UTENTI WHERE id_utente = ?";
-        
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
-        if ($result->num_rows > 0) {
-            return $result->fetch_assoc();
-        }
-        
-        return null;
-    }
-    
-    // Ottiene i dati di un annuncio dal database
-    function getAnnuncioById($conn, $id) {
-        $id = intval($id);
-        $sql = "SELECT * FROM ANNUNCI WHERE id_annuncio = ?";
-        
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
-        if ($result->num_rows > 0) {
-            return $result->fetch_assoc();
-        }
-        
-        return null;
-    }
-    
-    // Ottiene o crea una chat tra due utenti per un annuncio specifico
-    function getChatId($conn, $utente1, $utente2, $annuncioId) {
-        // Cerca una chat esistente
-        $sql = "SELECT id_chat FROM CHATS 
-                WHERE (id_utente1 = ? AND id_utente2 = ? AND id_annuncio = ?) 
-                OR (id_utente1 = ? AND id_utente2 = ? AND id_annuncio = ?)";
-        
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("iiiiii", $utente1, $utente2, $annuncioId, $utente2, $utente1, $annuncioId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
-        if ($result->num_rows > 0) {
-            $row = $result->fetch_assoc();
-            return $row['id_chat'];
-        }
-        
-        // Crea una nuova chat
-        $sql = "INSERT INTO CHATS (id_utente1, id_utente2, id_annuncio) VALUES (?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("iii", $utente1, $utente2, $annuncioId);
-        
-        if ($stmt->execute()) {
-            return $conn->insert_id;
-        }
-        
-        return null;
-    }
-    
-    // Inserisce un nuovo messaggio nel database
-    function inviaMessaggio($conn, $mittente, $destinatario, $contenuto) {
-        $sql = "INSERT INTO MESSAGGI (id_mittente, id_destinatario, contenuto) VALUES (?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("iis", $mittente, $destinatario, $contenuto);
-        
-        return $stmt->execute();
-    }
-    
-    // Recupera i messaggi tra due utenti
-    function getMessaggiChat($conn, $utente1, $utente2) {
-        $sql = "SELECT * FROM MESSAGGI 
-                WHERE (id_mittente = ? AND id_destinatario = ?) 
-                OR (id_mittente = ? AND id_destinatario = ?)
-                ORDER BY data_invio ASC";
-                
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("iiii", $utente1, $utente2, $utente2, $utente1);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
-        $messaggi = [];
-        while ($row = $result->fetch_assoc()) {
-            $messaggi[] = $row;
-        }
-        
-        return $messaggi;
-    }
-    ?>
 </body>
 </html>
