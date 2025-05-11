@@ -286,7 +286,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 <body>
     <div class="page-container">
-        <img src="Homepage.jpg" alt="Sfondo" class="background-image">
+        <img src="guy listening to music trough record player in a room with red walls.jpg" alt="Sfondo" class="background-image">
         
         <header class="header">
             <div class="logo-container">
