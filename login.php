@@ -179,7 +179,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 <body>
     <div class="page-container">
-        <img src="Homepage.jpg" alt="Sfondo" class="background-image">
+        <img src="guy listening to music trough record player in a room with red walls.jpg" alt="Sfondo" class="background-image">
         
         <header class="header">
             <div class="logo-container">
@@ -203,7 +203,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <input type="password" class="input-field" name="password" placeholder="Password" required>
                     
                     <div class="account-links">
-                        <a href="recupero-password.php">non hai un account?</a>
+                        <a href="registrazione.php">non hai un account?</a>
                         <a href="registrazione.php">crea account</a>
                     </div>
                     
@@ -212,9 +212,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
         </div>
         
-        <footer>
-            © 2025 by Business Name. Built on Wix Studio
-        </footer>
+   
     </div>
 </body>
 </html>
