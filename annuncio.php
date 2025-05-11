@@ -133,7 +133,7 @@ $venditore = getVenditoreById($conn, $annuncio['id_utente']);
     <header>
         <div class="logo">
             <a href="index.php"><img src="LOGO.png" alt="AllVinylsMarket Logo" /></a>
-            <h3 style="color:red; font-family:brush script mt; font-size:160%;">AllVinylsMarket</h3>
+            <h3 style="color:#b22222; font-family:brush script mt; font-size:160%;">AllVinylsMarket</h3>
         </div>
         <div class="search-bar">
             <form action="search.php" method="GET">
@@ -145,7 +145,7 @@ $venditore = getVenditoreById($conn, $annuncio['id_utente']);
                 <a href="messaggi.php" class="icon">📧</a>
                 <a href="preferiti.php" class="icon">❤️</a>
                 <a href="profilo.php" class="icon">👤</a>
-                <a href="logout.php" class="login-button">ESCI</a>
+               
             <?php else: ?>
                 <a href="login.php" class="login-button">ACCEDI/ISCRIVITI</a>
             <?php endif; ?>
