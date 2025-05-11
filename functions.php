@@ -59,4 +59,5 @@ function getRecentListings($conn) {
     
     return $listings;
 }
+
 ?>
