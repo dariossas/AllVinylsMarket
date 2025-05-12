@@ -29,17 +29,15 @@ $recentListings = getRecentListings($conn);
             <h3 style="color:#bb1e10; font-family:brush script mt; font-size:160%;">AllVinylsMarket</h3>
         </div>
         <div class="search-bar">
-            <form action="risultati.php" method="GET">
+            <form action="search.php" method="GET">
                <b> <input type="text" name="q" placeholder="🔍 Cerca prodotti"> </b>
             </form>
         </div>
-
-        
         <div class="icons">
             <?php if ($isLoggedIn): ?>
                 <a href="messaggi.php" class="icon">📧</a>
                 <a href="preferiti.php" class="icon">❤️</a>
-                <a href="profili.php" class="icon">👤</a>
+                <a href="profilo.php" class="icon">👤</a>
                 
             <?php else: ?>
                 <a href="login.php" class="login-button">Accedi | Iscriviti</a>
@@ -50,7 +48,7 @@ $recentListings = getRecentListings($conn);
         </div>
     </header>
     
-
+   
             
             <!-- Categoria CONDIZIONI -->
             <div class="category-dropdown">
@@ -86,7 +84,7 @@ $recentListings = getRecentListings($conn);
         </div>
     </div>
     
-            <
+
     
     <div class="esplora">
         <h3 class="esplora-title">Esplora</h3>
