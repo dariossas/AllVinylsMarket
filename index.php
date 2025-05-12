@@ -28,10 +28,14 @@ $recentListings = getRecentListings($conn);
             <a href="index.php"><img src="LOGO.png" alt="AllVinylsMarket Logo" /></a>
             <h3 style="color:#bb1e10; font-family:brush script mt; font-size:160%;">AllVinylsMarket</h3>
         </div>
-        <div class="search-bar">
-            <form action="search.php" method="GET">
-               <b> <input type="text" name="q" placeholder="🔍 Cerca prodotti"> </b>
-            </form>
+        <div class="search-container" style="display: flex; align-items: center; flex-grow: 1; max-width: 600px; margin: 0 20px;">
+            <button id="filterBtn" class="filter-button">Filtri
+            </button>
+            <div class="search-bar" style="flex-grow: 1; margin-left: 10px;">
+                <form action="search.php" method="GET">
+                   <b> <input type="text" name="q" placeholder="Cerca prodotti"> </b>
+                </form>
+            </div>
         </div>
         <div class="icons">
             <?php if ($isLoggedIn): ?>
@@ -48,26 +52,52 @@ $recentListings = getRecentListings($conn);
         </div>
     </header>
     
-   
-            
-            <!-- Categoria CONDIZIONI -->
-            <div class="category-dropdown">
-                <div class="category-btn">Condizioni</div>
-                <div class="dropdown-content">
-                    <a href="risultati.php?condizione=nuovo_pellicola">Nuovo con pellicola</a>
-                    <a href="risultati.php?condizione=nuovo">Nuovo</a>
-                    <a href="risultati.php?condizione=buone">Buone Condizioni</a>
-                    <a href="risultati.php?condizione=usato">Usato</a>
-                    <a href="risultati.php?condizione=molto_usato">Molto usato</a>
-                </div>
+    <!-- Filter Modal -->
+    <div id="filterModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Filtri</h2>
+                <span class="close">&times;</span>
             </div>
-            
-            <!-- Filtro prezzo -->
-            <form action="risultati.php" method="GET" class="price-filter">
-                <label for="price-range">Prezzo:</label>
-                <input type="range" id="price-range" name="max_price" min="1" max="1000" value="500" oninput="updatePriceDisplay(this.value)">
-                <span class="price-display" id="price-display">1€ - 500€</span>
-                <button type="submit" class="apply-filter">Applica</button>
+            <form action="risultati.php" method="GET" id="filterForm">
+                <div class="filter-section">
+                    <h3>Condizioni</h3>
+                    <div class="condition-options">
+                        <div class="condition-option">
+                            <input type="radio" id="condizione_nuovo_pellicola" name="condizione" value="nuovo_pellicola">
+                            <label for="condizione_nuovo_pellicola">Nuovo con pellicola</label>
+                        </div>
+                        <div class="condition-option">
+                            <input type="radio" id="condizione_nuovo" name="condizione" value="nuovo">
+                            <label for="condizione_nuovo">Nuovo</label>
+                        </div>
+                        <div class="condition-option">
+                            <input type="radio" id="condizione_buone" name="condizione" value="buone">
+                            <label for="condizione_buone">Buone Condizioni</label>
+                        </div>
+                        <div class="condition-option">
+                            <input type="radio" id="condizione_usato" name="condizione" value="usato">
+                            <label for="condizione_usato">Usato</label>
+                        </div>
+                        <div class="condition-option">
+                            <input type="radio" id="condizione_molto_usato" name="condizione" value="molto_usato">
+                            <label for="condizione_molto_usato">Molto usato</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="filter-section">
+                    <h3>Prezzo</h3>
+                    <div class="price-range-control">
+                        <input type="range" id="price-range" name="max_price" class="price-slider" min="1" max="1000" value="500" oninput="updatePriceDisplay(this.value)">
+                        <div class="price-range-labels">
+                            <span>1€</span>
+                            <span id="price-display">500€</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="apply-filters-btn">Applica Filtri</button>
             </form>
         </div>
     </div>
@@ -76,15 +106,13 @@ $recentListings = getRecentListings($conn);
         <img src="Homepage.jpg" alt="Homepage" />
         <div class="hero-content">
             <div class="hero-text">
-                arrivato il momento di liberare lo scaffale!  <br>  
+                è arrivato il momento di liberare lo scaffale!  <br>  
                 <a href="vendi.php?categoria=cassette" class="cassette-button">Vendi subito</a> <br>
                <b><a href="comefunziona.html" class="hero-button">Scopri come funziona</a></b>
                 
             </div>
         </div>
     </div>
-    
-
     
     <div class="esplora">
         <h3 class="esplora-title">Esplora</h3>
@@ -118,9 +146,35 @@ $recentListings = getRecentListings($conn);
     </div>
     
     <script>
+        // Get the modal
+        var modal = document.getElementById("filterModal");
+        
+        // Get the button that opens the modal
+        var btn = document.getElementById("filterBtn");
+        
+        // Get the <span> element that closes the modal
+        var span = document.getElementsByClassName("close")[0];
+        
+        // When the user clicks the button, open the modal 
+        btn.onclick = function() {
+            modal.style.display = "block";
+        }
+        
+        // When the user clicks on <span> (x), close the modal
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
+        
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+        
         // Funzione per aggiornare il display del prezzo
         function updatePriceDisplay(value) {
-            document.getElementById('price-display').textContent = '1€ - ' + value + '€';
+            document.getElementById('price-display').textContent = value + '€';
         }
     </script>
     
