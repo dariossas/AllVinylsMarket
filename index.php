@@ -37,7 +37,7 @@ $recentListings = getRecentListings($conn);
             <?php if ($isLoggedIn): ?>
                 <a href="messaggi.php" class="icon">📧</a>
                 <a href="preferiti.php" class="icon">❤️</a>
-                <a href="profilo.php" class="icon">👤</a>
+                <a href="profili.php" class="icon">👤</a>
                 
             <?php else: ?>
                 <a href="login.php" class="login-button">Accedi | Iscriviti</a>
