@@ -144,7 +144,7 @@ $venditore = getVenditoreById($conn, $annuncio['id_utente']);
             <?php if ($isLoggedIn): ?>
                 <a href="messaggi.php" class="icon">📧</a>
                 <a href="preferiti.php" class="icon">❤️</a>
-                <a href="profilo.php" class="icon">👤</a>
+                <a href="profili.php" class="icon">👤</a>
                
             <?php else: ?>
                 <a href="login.php" class="login-button">ACCEDI/ISCRIVITI</a>
@@ -198,7 +198,7 @@ $venditore = getVenditoreById($conn, $annuncio['id_utente']);
 
             <div class="action-buttons">
                 <a href="contatta.php?id=<?php echo $annuncioId; ?>&venditore=<?php echo $annuncio['id_utente']; ?>" class="action-button contact-button">Contatta per info</a>
-                <a href="offerta.php?id=<?php echo $annuncioId; ?>" class="action-button offer-button">Fai un'offerta</a>
+                
             </div>
         </div>
     </div>
