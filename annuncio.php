@@ -127,6 +127,39 @@ $venditore = getVenditoreById($conn, $annuncio['id_utente']);
         .vinyl-details {
             margin-top: 40px;
         }
+        
+        .venditore-info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .venditore-info:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .venditore-icon {
+            font-size: 24px;
+            margin-right: 15px;
+        }
+        
+        .venditore-details {
+            flex-grow: 1;
+        }
+        
+        .venditore-username {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .venditore-location {
+            color: #666;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
@@ -168,7 +201,24 @@ $venditore = getVenditoreById($conn, $annuncio['id_utente']);
                 <?php endif; ?>
             </div>
 
-            <p><?php echo htmlspecialchars($annuncio['condizioni']); ?></p>
+            <!-- Informazioni sul venditore (NUOVO) -->
+            <a href="visualizza_profilo.php?id=<?php echo $annuncio['id_utente']; ?>" style="text-decoration: none; color: inherit;">
+                <div class="venditore-info">
+                    <div class="venditore-icon">👤</div>  
+                    <div class="venditore-details">
+                        <div class="venditore-username"><?php echo htmlspecialchars($annuncio['venditore_username']); ?></div>
+                        <?php 
+                        // Ottieni la regione del venditore
+                        $venditore_regione = getVenditoreRegione($conn, $annuncio['id_utente']);
+                        if ($venditore_regione): 
+                        ?>
+                            <div class="venditore-location"><?php echo htmlspecialchars($venditore_regione); ?></div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </a>
+
+           
 
             <h2 class="annuncio-price"><?php echo number_format($annuncio['prezzo'], 2, ',', '.'); ?>€</h2>
 
@@ -265,6 +315,24 @@ $venditore = getVenditoreById($conn, $annuncio['id_utente']);
         }
 
         return null;
+    }
+
+    // Nuova funzione per ottenere la regione del venditore
+    function getVenditoreRegione($conn, $id) {
+        $id = intval($id);
+        $sql = "SELECT regione FROM UTENTI WHERE id_utente = ?";
+
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+            $data = $result->fetch_assoc();
+            return $data['regione'];
+        }
+
+        return "";
     }
 
     function checkIsFavorite($conn, $userId, $annuncioId) {
