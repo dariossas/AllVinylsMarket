@@ -85,3 +85,13 @@ CREATE TABLE RECENSIONI (
     FOREIGN KEY (id_recensore) REFERENCES UTENTI(id_utente),
     FOREIGN KEY (id_recensito) REFERENCES UTENTI(id_utente)
 );
+
+CREATE TABLE LISTA_PREFERITI (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_utente INT NOT NULL,
+    id_annuncio INT NOT NULL,
+    data_aggiunta DATETIME NOT NULL,
+    FOREIGN KEY (id_utente) REFERENCES UTENTI(id_utente),
+    FOREIGN KEY (id_annuncio) REFERENCES ANNUNCI(id_annuncio),
+    UNIQUE KEY (id_utente, id_annuncio)
+);
