@@ -32,7 +32,7 @@ $recentListings = getRecentListings($conn);
             <button id="filterBtn" class="filter-button">Filtri
             </button>
             <div class="search-bar" style="flex-grow: 1; margin-left: 10px;">
-                <form action="search.php" method="GET">
+                <form action="risultati.php" method="GET">
                    <b> <input type="text" name="q" placeholder="Cerca prodotti"> </b>
                 </form>
             </div>
