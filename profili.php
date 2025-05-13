@@ -45,6 +45,44 @@ if ($stmt === false) {
     }
 }
 
+// Gestione della rimozione di un annuncio
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['rimuovi_annuncio'])) {
+    $annuncio_id = intval($_POST['annuncio_id']);
+    
+    // Verifica che l'annuncio appartenga all'utente corrente
+    $check_sql = "SELECT id_utente FROM ANNUNCI WHERE id_annuncio = ?";
+    $check_stmt = $conn->prepare($check_sql);
+    $check_stmt->bind_param("i", $annuncio_id);
+    $check_stmt->execute();
+    $check_result = $check_stmt->get_result();
+    
+    if ($check_result->num_rows > 0) {
+        $annuncio_data = $check_result->fetch_assoc();
+        if ($annuncio_data['id_utente'] == $userId) {
+            // Elimina prima le eventuali preferenze
+            $delete_pref_sql = "DELETE FROM LISTA_PREFERITI WHERE id_annuncio = ?";
+            $delete_pref_stmt = $conn->prepare($delete_pref_sql);
+            $delete_pref_stmt->bind_param("i", $annuncio_id);
+            $delete_pref_stmt->execute();
+            
+            // Poi elimina l'annuncio
+            $delete_sql = "DELETE FROM ANNUNCI WHERE id_annuncio = ?";
+            $delete_stmt = $conn->prepare($delete_sql);
+            $delete_stmt->bind_param("i", $annuncio_id);
+            
+            if ($delete_stmt->execute()) {
+                $success = "Annuncio rimosso con successo!";
+            } else {
+                $error = "Errore durante la rimozione dell'annuncio: " . $conn->error;
+            }
+        } else {
+            $error = "Non sei autorizzato a rimuovere questo annuncio.";
+        }
+    } else {
+        $error = "Annuncio non trovato.";
+    }
+}
+
 // Gestione dell'aggiornamento del profilo
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['aggiorna_profilo'])) {
     // Recupera i dati dal form
@@ -189,62 +227,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['cambia_password'])) {
     }
 }
 
-// Impostazioni predefinite per le statistiche
+// Recupera il conteggio degli annunci dell'utente
+$sql_count = "SELECT COUNT(*) as total FROM ANNUNCI WHERE id_utente = ?";
+$stmt_count = $conn->prepare($sql_count);
 $annunci_count = 0;
-$vendite_count = 0;
-$acquisti_count = 0;
 
-// Recupera le statistiche utente
-$sql_annunci = "SELECT COUNT(*) as total FROM ANNUNCI WHERE id_utente = ?";
+if ($stmt_count) {
+    $stmt_count->bind_param("i", $userId);
+    if ($stmt_count->execute()) {
+        $result_count = $stmt_count->get_result();
+        $count_data = $result_count->fetch_assoc();
+        $annunci_count = $count_data['total'];
+    }
+    $stmt_count->close();
+}
+
+// Recupera gli annunci dell'utente
+$sql_annunci = "SELECT * FROM ANNUNCI WHERE id_utente = ? ORDER BY data_caricamento DESC";
 $stmt_annunci = $conn->prepare($sql_annunci);
+$annunci = [];
+
 if ($stmt_annunci) {
     $stmt_annunci->bind_param("i", $userId);
-    $stmt_annunci->execute();
-    $result_annunci = $stmt_annunci->get_result();
-    $annunci_count = $result_annunci->fetch_assoc()['total'];
-}
-
-$sql_vendite = "SELECT COUNT(*) as total FROM TRANSAZIONI WHERE id_venditore = ? AND stato = 'completata'";
-$stmt_vendite = $conn->prepare($sql_vendite);
-if ($stmt_vendite) {
-    $stmt_vendite->bind_param("i", $userId);
-    $stmt_vendite->execute();
-    $result_vendite = $stmt_vendite->get_result();
-    $vendite_count = $result_vendite->fetch_assoc()['total'];
-}
-
-$sql_acquisti = "SELECT COUNT(*) as total FROM TRANSAZIONI WHERE id_acquirente = ? AND stato = 'completata'";
-$stmt_acquisti = $conn->prepare($sql_acquisti);
-if ($stmt_acquisti) {
-    $stmt_acquisti->bind_param("i", $userId);
-    $stmt_acquisti->execute();
-    $result_acquisti = $stmt_acquisti->get_result();
-    $acquisti_count = $result_acquisti->fetch_assoc()['total'];
-}
-
-// Variabili per memorizzare i risultati
-$result_annunci_attivi = null;
-$result_annunci_venduti = null;
-
-// Recupera gli annunci attivi dell'utente
-$sql_annunci_attivi = "SELECT * FROM ANNUNCI WHERE id_utente = ? AND stato = 'attivo' ORDER BY data_inserimento DESC LIMIT 5";
-$stmt_annunci_attivi = $conn->prepare($sql_annunci_attivi);
-if ($stmt_annunci_attivi) {
-    $stmt_annunci_attivi->bind_param("i", $userId);
-    $stmt_annunci_attivi->execute();
-    $result_annunci_attivi = $stmt_annunci_attivi->get_result();
-}
-
-// Recupera gli annunci venduti dell'utente
-$sql_annunci_venduti = "SELECT a.* FROM ANNUNCI a 
-                        JOIN TRANSAZIONI t ON a.id_annuncio = t.id_annuncio 
-                        WHERE a.id_utente = ? AND t.stato = 'completata' 
-                        ORDER BY t.data_transazione DESC LIMIT 5";
-$stmt_annunci_venduti = $conn->prepare($sql_annunci_venduti);
-if ($stmt_annunci_venduti) {
-    $stmt_annunci_venduti->bind_param("i", $userId);
-    $stmt_annunci_venduti->execute();
-    $result_annunci_venduti = $stmt_annunci_venduti->get_result();
+    if ($stmt_annunci->execute()) {
+        $result_annunci = $stmt_annunci->get_result();
+        $annunci = $result_annunci->fetch_all(MYSQLI_ASSOC);
+    }
+    $stmt_annunci->close();
 }
 ?>
 
@@ -430,14 +439,76 @@ if ($stmt_annunci_venduti) {
             font-size: 14px;
             transition: background-color 0.2s;
             margin-top: 20px;
+            margin-left: 85px;
             width: 100%;
+            
         }
         
         .logout-button:hover {
             background-color: #e5e5e5;
         }
         
-        .annunci-grid {
+        .esplora-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 25px;
+            padding: 20px 0;
+        }
+        
+        .vinyl-item {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .vinyl-item:hover {
+            transform: translateY(-5px);
+        }
+        
+        .vinyl-item img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .vinyl-item h4 {
+            margin: 10px 15px 5px;
+            font-size: 1em;
+            color: #333;
+        }
+        
+        .vinyl-item p {
+            margin: 0 15px 5px;
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .price {
+            font-weight: bold;
+            color: #bb1e10 !important;
+            font-size: 1.1em !important;
+            margin: 10px 15px !important;
+        }
+        
+        .remove-button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+            transition: background-color 0.3s;
+        }
+        
+        .remove-button:hover {
+            background-color: #c82333;
+        }
+        
+        .annuncio-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 15px;
@@ -482,9 +553,49 @@ if ($stmt_annunci_venduti) {
             color: #bb1e10;
         }
         
-        .annuncio-status {
+        .annuncio-data {
             font-size: 12px;
             color: #666;
+        }
+        
+        .annuncio-preferiti {
+            display: flex;
+            align-items: center;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        
+        .annuncio-preferiti .heart {
+            color: #bb1e10;
+            margin-right: 3px;
+        }
+        
+        .annuncio-actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 8px;
+        }
+        
+        .action-btn {
+            flex: 1;
+            text-align: center;
+            padding: 5px;
+            font-size: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        .edit-btn {
+            background-color: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        
+        .remove-btn {
+            background-color: #ffe6e6;
+            color: #bb1e10;
+            border: 1px solid #ffcccc;
         }
         
         .tabs {
@@ -539,6 +650,53 @@ if ($stmt_annunci_venduti) {
             background-color: rgba(76, 175, 80, 0.1);
             color: #2e7d32;
         }
+        
+        .confirm-dialog {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .dialog-content {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .dialog-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .dialog-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .confirm-btn {
+            background-color: #bb1e10;
+            color: white;
+        }
+        
+        .cancel-btn {
+            background-color: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
     </style>
 </head>
 <body>
@@ -555,7 +713,7 @@ if ($stmt_annunci_venduti) {
         <div class="icons">
             <a href="messaggi.php" class="icon">📧</a>
             <a href="preferiti.php" class="icon">❤️</a>
-            <a href="profilo.php" class="icon">👤</a>
+            <a href="profili.php" class="icon">👤</a>
         </div>
         <div class="info-button">
             <a href="comefunziona.html"> ? </a>
@@ -582,6 +740,22 @@ if ($stmt_annunci_venduti) {
                 <input type="range" id="price-range" name="max_price" min="1" max="1000" value="500" oninput="updatePriceDisplay(this.value)">
                 <span class="price-display" id="price-display">1€ - 500€</span>
                 <button type="submit" class="apply-filter">Applica</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dialog di conferma per rimozione annuncio -->
+    <div id="confirm-dialog" class="confirm-dialog">
+        <div class="dialog-content">
+            <h3>Conferma rimozione</h3>
+            <p>Sei sicuro di voler rimuovere questo annuncio? Questa azione non può essere annullata.</p>
+            <form id="remove-form" action="profili.php" method="POST">
+                <input type="hidden" id="remove-annuncio-id" name="annuncio_id" value="">
+                <input type="hidden" name="rimuovi_annuncio" value="1">
+                <div class="dialog-buttons">
+                    <button type="button" class="dialog-btn cancel-btn" onclick="hideConfirmDialog()">Annulla</button>
+                    <button type="submit" class="dialog-btn confirm-btn">Rimuovi</button>
+                </div>
             </form>
         </div>
     </div>
@@ -613,178 +787,185 @@ if ($stmt_annunci_venduti) {
                         <div class="stat-number"><?php echo $annunci_count; ?></div>
                         <div class="stat-label">Annunci</div>
                     </div>
-                    <div class="stat-item">
-                        <div class="stat-number"><?php echo $vendite_count; ?></div>
-                        <div class="stat-label">Vendite</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number"><?php echo $acquisti_count; ?></div>
-                        <div class="stat-label">Acquisti</div>
-                    </div>
                 </div>
                 
                 <div class="profile-links">
-                    <a href="#" class="profile-link active" data-tab="info">Informazioni profilo</a>
-                    <a href="#" class="profile-link" data-tab="annunci">I miei annunci</a>
-                 <a href="#" class="profile-link" data-tab="password">Cambia password</a>
-                   
-                   
-                   
+                    
+                    <a href="logout.php" class="logout-button">Logout</a>
                 </div>
-                
-                <form action="logout.php" method="POST">
-                    <button type="submit" class="logout-button">Esci</button>
-                </form>
             </div>
             
             <div class="profile-content">
-                <!-- Tab Informazioni Profilo -->
-                <div id="info" class="content-section tab-content active">
-                    <h3 class="section-title">Informazioni profilo</h3>
-                    <form action="profilo.php" method="POST" enctype="multipart/form-data">
+                <div class="tabs">
+                    <div class="tab active" data-tab="info">Informazioni profilo</div>
+                    <div class="tab" data-tab="annunci">I miei annunci</div>
+                    <div class="tab" data-tab="password">Cambia password</div>
+                </div>
+                
+                <!-- Sezione informazioni profilo -->
+                <div id="info" class="tab-content content-section active">
+                    <h3 class="section-title">Modifica profilo</h3>
+                    <form action="profili.php" method="POST" enctype="multipart/form-data">
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="nome">Nome*</label>
-                                <input type="text" id="nome" name="nome" value="<?php echo isset($user['nome']) ? htmlspecialchars($user['nome']) : ''; ?>" required>
+                                <label for="nome">Nome</label>
+                                <input type="text" id="nome" name="nome" value="<?php echo isset($user['nome']) ? htmlspecialchars($user['nome']) : ''; ?>">
                             </div>
                             <div class="form-group">
-                                <label for="cognome">Cognome*</label>
-                                <input type="text" id="cognome" name="cognome" value="<?php echo isset($user['cognome']) ? htmlspecialchars($user['cognome']) : ''; ?>" required>
+                                <label for="cognome">Cognome</label>
+                                <input type="text" id="cognome" name="cognome" value="<?php echo isset($user['cognome']) ? htmlspecialchars($user['cognome']) : ''; ?>">
                             </div>
                         </div>
                         
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="username">Username*</label>
-                                <input type="text" id="username" name="username" value="<?php echo isset($user['username']) ? htmlspecialchars($user['username']) : ''; ?>" required>
+                                <label for="username">Username</label>
+                                <input type="text" id="username" name="username" value="<?php echo isset($user['username']) ? htmlspecialchars($user['username']) : ''; ?>">
                             </div>
                             <div class="form-group">
-                                <label for="email">Email*</label>
-                                <input type="email" id="email" name="email" value="<?php echo isset($user['email']) ? htmlspecialchars($user['email']) : ''; ?>" required>
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="email" value="<?php echo isset($user['email']) ? htmlspecialchars($user['email']) : ''; ?>">
                             </div>
                         </div>
                         
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="paese">Paese*</label>
-                                <input type="text" id="paese" name="paese" value="<?php echo isset($user['paese']) ? htmlspecialchars($user['paese']) : 'Italia'; ?>" readonly>
-                            </div>
-                            <div class="form-group">
-                                <label for="regione">Regione*</label>
-                                <select id="regione" name="regione" required>
-                                    <option value="">Seleziona regione</option>
-                                    <?php foreach ($regioni as $r): ?>
-                                        <option value="<?php echo $r; ?>" <?php echo (isset($user['regione']) && $user['regione'] === $r) ? 'selected' : ''; ?>><?php echo $r; ?></option>
+                                <label for="regione">Regione</label>
+                                <select id="regione" name="regione">
+                                    <option value="">Seleziona una regione</option>
+                                    <?php foreach ($regioni as $regione): ?>
+                                        <option value="<?php echo $regione; ?>" <?php echo (isset($user['regione']) && $user['regione'] == $regione) ? 'selected' : ''; ?>>
+                                            <?php echo $regione; ?>
+                                        </option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
+                            <div class="form-group">
+                                <label for="paese">Paese</label>
+                                <input type="text" id="paese" name="paese" value="<?php echo isset($user['paese']) ? htmlspecialchars($user['paese']) : 'Italia'; ?>" readonly>
+                            </div>
                         </div>
                         
-                        <div class="form-group">
-                            <label for="immagine_profilo">Immagine profilo</label>
-                            <input type="file" id="immagine_profilo" name="immagine_profilo" accept="image/*">
-                            <small>Lascia vuoto per mantenere l'immagine attuale</small>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="immagine_profilo">Immagine del profilo</label>
+                                <input type="file" id="immagine_profilo" name="immagine_profilo" accept="image/*">
+                            </div>
                         </div>
                         
                         <button type="submit" name="aggiorna_profilo" class="submit-button">Aggiorna profilo</button>
                     </form>
                 </div>
                 
-                <!-- Tab I miei annunci -->
-                <div id="annunci" class="content-section tab-content">
-                    <h3 class="section-title">I miei annunci</h3>
-                    <?php if ($result_annunci_attivi->num_rows > 0): ?>
-                        <div class="annunci-grid">
-                            <?php while ($annuncio = $result_annunci_attivi->fetch_assoc()): ?>
+                <!-- Sezione annunci -->
+                <div id="annunci" class="tab-content content-section">
+                    <h3 class="section-title">I miei annunci (<?php echo $annunci_count; ?>)</h3>
+                    
+                    <?php if (empty($annunci)): ?>
+                        <div class="empty-state">
+                            <p>Non hai ancora pubblicato annunci.</p>
+                            <a href="pubblica.php" class="submit-button" style="display: inline-block; margin-top: 15px;">Pubblica un annuncio</a>
+                        </div>
+                    <?php else: ?>
+                        <div class="annuncio-grid">
+                            <?php foreach ($annunci as $annuncio): ?>
                                 <div class="annuncio-item">
                                     <div class="annuncio-image">
-                                        <img src="<?php echo $annuncio['immagine_copertina']; ?>" alt="<?php echo htmlspecialchars($annuncio['titolo']); ?>" onerror="this.src='https://via.placeholder.com/150x150'">
+                                        <img src="<?php echo !empty($annuncio['immagine_copertina']) ? htmlspecialchars($annuncio['immagine_copertina']) : 'https://via.placeholder.com/200x150?text=No+Image'; ?>" 
+                                             alt="<?php echo htmlspecialchars($annuncio['titolo']); ?>">
                                     </div>
                                     <div class="annuncio-info">
                                         <div class="annuncio-title"><?php echo htmlspecialchars($annuncio['titolo']); ?></div>
-                                        <div class="annuncio-price">€<?php echo number_format($annuncio['prezzo'], 2, ',', '.'); ?></div>
-                                        <div class="annuncio-status">Pubblicato il <?php echo date('d/m/Y', strtotime($annuncio['data_inserimento'])); ?></div>
-                                        <a href="modifica_annuncio.php?id=<?php echo $annuncio['id_annuncio']; ?>" class="submit-button" style="display: inline-block; text-decoration: none; text-align: center; margin-top: 10px; font-size: 12px; padding: 5px 10px;">Modifica</a>
+                                        <div class="annuncio-price"><?php echo number_format($annuncio['prezzo'], 2); ?>€</div>
+                                        <div class="annuncio-data">
+                                            <?php echo date('d/m/Y', strtotime($annuncio['data_caricamento'])); ?>
+                                        </div>
+                                        <div class="annuncio-actions">
+                                            
+                                            <a href="#" class="action-btn remove-btn" onclick="showConfirmDialog(<?php echo $annuncio['id_annuncio']; ?>)">Rimuovi</a>
+                                        </div>
                                     </div>
                                 </div>
-                            <?php endwhile; ?>
+                            <?php endforeach; ?>
                         </div>
-                    <?php else: ?>
-                        <div class="empty-state">Non hai ancora pubblicato annunci</div>
                     <?php endif; ?>
-                    
-                    <div style="text-align: center; margin-top: 20px;">
-                        <a href="vendi.php" class="submit-button" style="display: inline-block; text-decoration: none; padding: 10px 20px;">Pubblica nuovo annuncio</a>
-                    </div>
                 </div>
                 
-          
-                
-                <!-- Tab Cambia password -->
-                <div id="password" class="content-section tab-content">
+                <!-- Sezione cambio password -->
+                <div id="password" class="tab-content content-section">
                     <h3 class="section-title">Cambia password</h3>
-                    <form action="profilo.php" method="POST">
+                    <form action="profili.php" method="POST">
                         <div class="form-group">
-                            <label for="password_attuale">Password attuale*</label>
+                            <label for="password_attuale">Password attuale</label>
                             <input type="password" id="password_attuale" name="password_attuale" required>
                         </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="nuova_password">Nuova password*</label>
-                                <input type="password" id="nuova_password" name="nuova_password" required>
-                                <small>Minimo 6 caratteri</small>
-                            </div>
-                            <div class="form-group">
-                                <label for="conferma_password">Conferma nuova password*</label>
-                                <input type="password" id="conferma_password" name="conferma_password" required>
-                            </div>
+                        <div class="form-group">
+                            <label for="nuova_password">Nuova password</label>
+                            <input type="password" id="nuova_password" name="nuova_password" required>
                         </div>
-                        
+                        <div class="form-group">
+                            <label for="conferma_password">Conferma nuova password</label>
+                            <input type="password" id="conferma_password" name="conferma_password" required>
+                        </div>
                         <button type="submit" name="cambia_password" class="submit-button">Cambia password</button>
                     </form>
                 </div>
-                
             </div>
         </div>
     </div>
 
     <script>
+        // Funzione per aggiornare la visualizzazione del prezzo
+        function updatePriceDisplay(value) {
+            document.getElementById("price-display").innerText = "1€ - " + value + "€";
+        }
+        
+        // Funzione per gestire le tab
         document.addEventListener('DOMContentLoaded', function() {
-            // Funzione per mostrare/nascondere i tab
-            const showTab = (tabId) => {
-                // Nascondi tutti i contenuti dei tab
-                document.querySelectorAll('.tab-content').forEach(tab => {
-                    tab.classList.remove('active');
-                });
-                
-                // Rimuovi la classe active da tutti i link
-                document.querySelectorAll('.profile-link').forEach(link => {
-                    link.classList.remove('active');
-                });
-                
-                // Mostra il tab selezionato
-                document.getElementById(tabId).classList.add('active');
-                
-                // Aggiungi la classe active al link cliccato
-                document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
-            };
+            // Gestione delle tab
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const profileLinks = document.querySelectorAll('.profile-link');
             
-            // Aggiungi l'event listener a tutti i link dei tab
-            document.querySelectorAll('.profile-link').forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
+            function setActiveTab(tabId) {
+                // Rimuove la classe active da tutte le tab e i contenuti
+                tabs.forEach(tab => tab.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                profileLinks.forEach(link => link.classList.remove('active'));
+                
+                // Attiva la tab e il contenuto corrispondente
+                document.querySelector(`.tab[data-tab="${tabId}"]`).classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+                document.querySelector(`.profile-link[data-tab="${tabId}"]`).classList.add('active');
+            }
+            
+            // Event listener per i clic sulle tab
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
                     const tabId = this.getAttribute('data-tab');
-                    showTab(tabId);
+                    setActiveTab(tabId);
                 });
             });
             
-            // Funzione per aggiornare il display del prezzo
-            window.updatePriceDisplay = function(value) {
-                document.getElementById('price-display').textContent = '1€ - ' + value + '€';
-            };
+            // Event listener per i link nel sidebar
+            profileLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const tabId = this.getAttribute('data-tab');
+                    setActiveTab(tabId);
+                });
+            });
+            
+            // Funzioni per la gestione della finestra di dialogo di conferma
+            window.showConfirmDialog = function(annuncioId) {
+                document.getElementById('remove-annuncio-id').value = annuncioId;
+                document.getElementById('confirm-dialog').style.display = 'flex';
+            }
+            
+            window.hideConfirmDialog = function() {
+                document.getElementById('confirm-dialog').style.display = 'none';
+            }
         });
     </script>
 </body>
 </html>
-                                        
