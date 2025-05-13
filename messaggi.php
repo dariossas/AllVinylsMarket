@@ -148,7 +148,7 @@ $conversazioni = getConversazioniUtente($conn, $userId);
         <div class="icons">
             <a href="messaggi.php" class="icon" style="font-weight: bold;">📧</a>
             <a href="preferiti.php" class="icon">❤️</a>
-            <a href="profilo.php" class="icon">👤</a>
+            <a href="profili.php" class="icon">👤</a>
             
         </div>
     </header>
