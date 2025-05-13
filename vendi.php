@@ -33,10 +33,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $errorMsg = "Il prezzo deve essere compreso tra 0.01€ e 999.99€.";
     } else {
         // Handle image uploads
-        $targetDir = "uploads/";
+        $targetDir = "uploads/annunci/";
         $uploadedFiles = [];
         $allowTypes = array('jpg', 'jpeg', 'png', 'gif');
-        $maxFiles = 5; // Maximum number of allowed files
+        $maxFileSize = 5 * 1024 * 1024; // 5MB max per immagine
+        $maxFiles = 5; // Numero massimo di file consentiti
         $uploadSuccess = true;
         
         // Create directory if it doesn't exist
@@ -52,39 +53,58 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Limit to max 5 files
             $countFiles = min($countFiles, $maxFiles);
             
-            // Loop through each file
+            // Validate files before processing
             for ($i = 0; $i < $countFiles; $i++) {
-                if ($_FILES['immagini']['error'][$i] == 0) {
-                    $fileName = basename($_FILES['immagini']['name'][$i]);
-                    $targetFilePath = $targetDir . time() . "_" . $i . "_" . $fileName; // Adding timestamp and index to make filename unique
-                    $fileType = pathinfo($targetFilePath, PATHINFO_EXTENSION);
-                    
-                    // Check if file is an image
-                    if (in_array(strtolower($fileType), $allowTypes)) {
-                        // Upload file
+                if ($_FILES['immagini']['error'][$i] != 0 && $_FILES['immagini']['error'][$i] != 4) {
+                    $uploadSuccess = false;
+                    $errorMsg = "Errore nel caricamento dell'immagine " . ($i + 1) . ": " . getUploadError($_FILES['immagini']['error'][$i]);
+                    break;
+                }
+                
+                if ($_FILES['immagini']['size'][$i] > $maxFileSize) {
+                    $uploadSuccess = false;
+                    $errorMsg = "L'immagine " . ($i + 1) . " supera la dimensione massima di 5MB";
+                    break;
+                }
+                
+                $fileType = strtolower(pathinfo($_FILES['immagini']['name'][$i], PATHINFO_EXTENSION));
+                if (!in_array($fileType, $allowTypes)) {
+                    $uploadSuccess = false;
+                    $errorMsg = "Tipo file non supportato per l'immagine " . ($i + 1) . ". Sono supportati solo JPG, JPEG, PNG e GIF.";
+                    break;
+                }
+            }
+            
+            // If validation passed, process uploads
+            if ($uploadSuccess) {
+                for ($i = 0; $i < $countFiles; $i++) {
+                    if ($_FILES['immagini']['error'][$i] == 0) {
+                        $fileName = uniqid('img_') . '_' . preg_replace('/[^a-zA-Z0-9_\.]/', '_', basename($_FILES['immagini']['name'][$i]));
+                        $targetFilePath = $targetDir . $fileName;
+                        
                         if (move_uploaded_file($_FILES['immagini']['tmp_name'][$i], $targetFilePath)) {
                             $uploadedFiles[] = $targetFilePath;
                         } else {
                             $uploadSuccess = false;
-                            $errorMsg = "Si è verificato un errore durante il caricamento dell'immagine " . ($i + 1);
+                            $errorMsg = "Impossibile caricare l'immagine " . ($i + 1);
+                            // Cleanup any already uploaded files
+                            foreach ($uploadedFiles as $file) {
+                                if (file_exists($file)) {
+                                    unlink($file);
+                                }
+                            }
+                            $uploadedFiles = [];
                             break;
                         }
-                    } else {
-                        $uploadSuccess = false;
-                        $errorMsg = "Sono supportati solo file JPG, JPEG, PNG e GIF.";
-                        break;
                     }
-                } else if ($_FILES['immagini']['error'][$i] != 4) { // 4 means no file was uploaded, which is OK
-                    $uploadSuccess = false;
-                    $errorMsg = "Si è verificato un errore durante il caricamento dell'immagine " . ($i + 1);
-                    break;
                 }
             }
         }
         
-        // If no images were uploaded, use default
+        // If no images were uploaded, show error
         if (empty($uploadedFiles)) {
-            $uploadedFiles[] = "images/default_vinyl.jpg";
+            $uploadSuccess = false;
+            $errorMsg = "È richiesta almeno un'immagine per l'annuncio";
         }
         
         // If uploads were successful, insert record into database
@@ -323,7 +343,137 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
            
         }
         
-      
+        .form-group input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .file-upload-container {
+            position: relative;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 25px;
+            text-align: center;
+            background-color: #f9f9f9;
+            transition: all 0.3s ease;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .file-upload-container.highlight {
+            border-color: #bb1e10;
+            background-color: #fef0ef;
+        }
+        
+        .upload-prompt {
+            text-align: center;
+        }
+        
+        .upload-icon {
+            font-size: 36px;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .upload-prompt p {
+            margin: 5px 0;
+            color: #555;
+        }
+        
+        .upload-prompt small {
+            color: #888;
+            font-size: 12px;
+        }
+        
+        .images-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .preview-item {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .preview-item.main-image {
+            border-color: #bb1e10;
+        }
+        
+        .preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .preview-actions {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 5px;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        .preview-actions button {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 3px;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 0;
+        }
+        
+        .preview-actions button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .preview-actions button:hover:not(:disabled) {
+            background: #fff;
+        }
+        
+        .main-label {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background: #bb1e10;
+            color: white;
+            font-size: 10px;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        
+        .error-text {
+            color: #dc3545;
+            font-size: 0.875em;
+            margin-top: 5px;
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
     </style>
 </head>
 <body>
@@ -407,24 +557,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <textarea id="descrizione" name="descrizione" placeholder="Descrivi il tuo vinile, fornisci dettagli sulle condizioni, l'edizione, ecc."><?php echo isset($descrizione) ? htmlspecialchars($descrizione) : ''; ?></textarea>
             </div>
             
-            <div class="form-group image-uploads">
-                <h3>Immagini (fino a 5)</h3>
-                <p class="info-text">Puoi caricare fino a 5 immagini. <strong>La prima immagine selezionata sarà l'immagine di copertina</strong>. Formati supportati: JPG, PNG, GIF. Dimensione massima: 5MB per immagine.</p>
-                
-                <div class="image-upload-item">
-                    <label for="immagini" class="file-input-label">Seleziona fino a 5 immagini</label>
-                    
-                    <!-- Input file nascosto -->
-                    <input type="file" id="immagini" name="immagini[]" accept="image/jpeg, image/png, image/gif" 
-                           multiple onchange="previewImages(this)" style="display: none;">
-                    
-                    <!-- Bottone personalizzato -->
-                    <label for="immagini" class="custom-file-button">+ Carica le Foto</label>
-                    
-                    <div class="previews-container" id="images-preview">
-                        <!-- Le anteprime delle immagini verranno mostrate qui -->
+            <div class="form-group">
+                <label for="immagini" class="required">Immagini (massimo 1)</label>
+                <div class="file-upload-container" id="drop-area">
+                    <input type="file" id="immagini" name="immagini[]" multiple accept="image/jpeg, image/png, image/jpg, image/gif" onchange="previewImages(this)">
+                    <div class="upload-prompt">
+                        <i class="upload-icon">📁</i>
+                        <p>Trascina qui L'immagine di copertina</p>
+                        <small>Massimo 1 immagini (JPG, PNG, GIF).</small>
                     </div>
                 </div>
+                <div id="images-preview" class="images-preview"></div>
+                <div id="file-errors" class="error-text"></div>
             </div>
             
             <button type="submit" class="submit-button">PUBBLICA ANNUNCIO</button>
@@ -432,28 +576,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
     
     <script>
-        function previewImages(input) {
-            var previewContainer = document.getElementById('images-preview');
-            previewContainer.innerHTML = ''; // Pulisce le anteprime esistenti
-            
-            if (input.files && input.files.length > 0) {
-                // Limita il numero di file a 5
-                var filesToPreview = Math.min(input.files.length, 5);
-                
-                for (var i = 0; i < filesToPreview; i++) {
-                    var reader = new FileReader();
-                    var file = input.files[i];
-                    
-                    (function(file, index) {
-                        reader.onload = function(e) {
-                            var imgContainer = document.createElement('div');
-                            imgContainer.className = 'preview-item';
-                            
-                            var img = document.createElement('img');
-                            img.className = 'image-preview';
-                            img.src = e.target.result;
-                            img.style.display = 'block';
-                            
+        // Gestione drag & drop
+        const dropArea = document.getElementById('drop-area');
+        const fileInput = document.getElementById('immagini');
+        const previewContainer = document.getElementById('images-preview');
+        const errorContainer = document.getElementById('file-errors');
+        const maxFiles = 5;
+        let files = [];
+
+        // Prevent default drag behaviors
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        // Highlight drop area when item is dragged over it
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        // Handle dropped files
+        dropArea.addEventListener('drop', handleDrop, false);
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
                             var label = document.createElement('div');
                             label.className = 'preview-label';
                             label.textContent = index === 0 ? 'Copertina' : 'Foto ' + index;
